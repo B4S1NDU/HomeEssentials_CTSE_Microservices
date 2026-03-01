@@ -1,0 +1,263 @@
+openapi: 3.0.0
+info:
+  title: Product Service API
+  description: Product Catalog Management API for HomeEssentials+
+  version: 1.0.0
+  contact:
+    name: B4S1NDU
+    email: support@homeessentials.com
+
+servers:
+  - url: http://localhost:3002
+    description: Development server
+  - url: https://api.homeessentials.com/products
+    description: Production server
+
+tags:
+  - name: Products
+    description: Product management endpoints
+  - name: Categories
+    description: Category management endpoints
+
+paths:
+  /api/products:
+    get:
+      tags:
+        - Products
+      summary: Get all products
+      description: Retrieve a paginated list of products with optional filtering
+      parameters:
+        - in: query
+          name: category
+          schema:
+            type: string
+          description: Filter by category
+        - in: query
+          name: isActive
+          schema:
+            type: boolean
+          description: Filter by active status
+        - in: query
+          name: search
+          schema:
+            type: string
+          description: Full-text search in name and description
+        - in: query
+          name: page
+          schema:
+            type: integer
+            default: 1
+          description: Page number
+        - in: query
+          name: limit
+          schema:
+            type: integer
+            default: 10
+          description: Items per page
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  count:
+                    type: integer
+                  total:
+                    type: integer
+                  page:
+                    type: integer
+                  totalPages:
+                    type: integer
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Product'
+
+    post:
+      tags:
+        - Products
+      summary: Create new product
+      description: Create a new product (Admin only)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductInput'
+      responses:
+        '201':
+          description: Product created successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  message:
+                    type: string
+                  data:
+                    $ref: '#/components/schemas/Product'
+        '400':
+          description: Validation error
+
+  /api/products/{id}:
+    get:
+      tags:
+        - Products
+      summary: Get product by ID
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Product ID
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                  data:
+                    $ref: '#/components/schemas/Product'
+        '404':
+          description: Product not found
+
+    put:
+      tags:
+        - Products
+      summary: Update product
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ProductInput'
+      responses:
+        '200':
+          description: Product updated successfully
+        '404':
+          description: Product not found
+
+    delete:
+      tags:
+        - Products
+      summary: Delete product
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Product deleted successfully
+        '404':
+          description: Product not found
+
+  /api/products/category/{category}:
+    get:
+      tags:
+        - Products
+      summary: Get products by category
+      parameters:
+        - in: path
+          name: category
+          required: true
+          schema:
+            type: string
+            enum: [rice, soap, detergent, cooking-oil, spices, cleaning, personal-care, other]
+      responses:
+        '200':
+          description: Successful response
+
+  /api/products/categories/list:
+    get:
+      tags:
+        - Categories
+      summary: Get all available categories
+      responses:
+        '200':
+          description: List of categories
+
+components:
+  schemas:
+    Product:
+      type: object
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        description:
+          type: string
+        category:
+          type: string
+          enum: [rice, soap, detergent, cooking-oil, spices, cleaning, personal-care, other]
+        price:
+          type: number
+        unit:
+          type: string
+          enum: [kg, g, l, ml, piece, pack]
+        imageUrl:
+          type: string
+        brand:
+          type: string
+        isActive:
+          type: boolean
+        createdBy:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+
+    ProductInput:
+      type: object
+      required:
+        - name
+        - description
+        - category
+        - price
+        - unit
+      properties:
+        name:
+          type: string
+          minLength: 3
+          maxLength: 100
+        description:
+          type: string
+          minLength: 10
+          maxLength: 1000
+        category:
+          type: string
+          enum: [rice, soap, detergent, cooking-oil, spices, cleaning, personal-care, other]
+        price:
+          type: number
+          minimum: 0
+        unit:
+          type: string
+          enum: [kg, g, l, ml, piece, pack]
+        imageUrl:
+          type: string
+        brand:
+          type: string
+        isActive:
+          type: boolean
