@@ -1,0 +1,116 @@
+version: '3.8'
+
+services:
+  # Product Service
+  product-service:
+    build:
+      context: ./product-service
+      dockerfile: Dockerfile
+    container_name: product-service
+    ports:
+      - "3002:3002"
+    env_file:
+      - ./product-service/.env
+    environment:
+      - NODE_ENV=development
+      - PORT=3002
+      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3004
+    networks:
+      - homeessentials-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3002/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Inventory Service
+  inventory-service:
+    build:
+      context: ./inventory-service
+      dockerfile: Dockerfile
+    container_name: inventory-service
+    ports:
+      - "3003:3003"
+    env_file:
+      - ./inventory-service/.env
+    environment:
+      - NODE_ENV=development
+      - PORT=3003
+      - ALLOWED_ORIGINS=http://localhost:3000,http://localhost:3004
+      - PRODUCT_SERVICE_URL=http://product-service:3002
+    networks:
+      - homeessentials-network
+    depends_on:
+      - product-service
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3003/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # User Service (Placeholder for Student 1)
+  # user-service:
+  #   build:
+  #     context: ./user-service
+  #     dockerfile: Dockerfile
+  #   container_name: user-service
+  #   ports:
+  #     - "3001:3001"
+  #   environment:
+  #     - NODE_ENV=development
+  #     - PORT=3001
+  #   networks:
+  #     - homeessentials-network
+
+  # Order Service (Placeholder for Student 2)
+  # order-service:
+  #   build:
+  #     context: ./order-service
+  #     dockerfile: Dockerfile
+  #   container_name: order-service
+  #   ports:
+  #     - "3004:3004"
+  #   environment:
+  #     - NODE_ENV=development
+  #     - PORT=3004
+  #   networks:
+  #     - homeessentials-network
+
+  # Payment Service (Placeholder for Student 3)
+  # payment-service:
+  #   build:
+  #     context: ./payment-service
+  #     dockerfile: Dockerfile
+  #   container_name: payment-service
+  #   ports:
+  #     - "3005:3005"
+  #   environment:
+  #     - NODE_ENV=development
+  #     - PORT=3005
+  #   networks:
+  #     - homeessentials-network
+
+  # Notification Service (Placeholder for Student 4)
+  # notification-service:
+  #   build:
+  #     context: ./notification-service
+  #     dockerfile: Dockerfile
+  #   container_name: notification-service
+  #   ports:
+  #     - "3006:3006"
+  #   environment:
+  #     - NODE_ENV=development
+  #     - PORT=3006
+  #   networks:
+  #     - homeessentials-network
+
+networks:
+  homeessentials-network:
+    driver: bridge
+
+volumes:
+  mongo-data:
