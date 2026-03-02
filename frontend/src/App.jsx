@@ -1,23 +1,26 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { Toaster } from 'react-hot-toast';
-import { AuthProvider } from './context/AuthContext';
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { Toaster } from "react-hot-toast";
+import { AuthProvider } from "./context/AuthContext";
 
 // Layout
-import AppLayout from './components/layout/AppLayout';
+import AppLayout from "./components/layout/AppLayout";
 
 // Auth
-import LoginPage from './pages/auth/LoginPage';
-import RegisterPage from './pages/auth/RegisterPage';
+import LoginPage from "./pages/auth/LoginPage";
+import RegisterPage from "./pages/auth/RegisterPage";
 
 // App pages
-import DashboardPage from './pages/dashboard/DashboardPage';
-import ProductsPage from './pages/products/ProductsPage';
-import InventoryPage from './pages/inventory/InventoryPage';
-import UsersPage from './pages/users/UsersPage';
-import ProfilePage from './pages/users/ProfilePage';
-import OrdersPage from './pages/orders/OrdersPage';
-import PaymentsPage from './pages/payments/PaymentsPage';
-import NotificationsPage from './pages/notifications/NotificationsPage';
+import DashboardPage from "./pages/dashboard/DashboardPage";
+import ProductsPage from "./pages/products/ProductsPage";
+import InventoryPage from "./pages/inventory/InventoryPage";
+import UsersPage from "./pages/users/UsersPage";
+import ProfilePage from "./pages/users/ProfilePage";
+import OrdersPage from "./pages/orders/OrdersPage";
+import PaymentsPage from "./pages/payments/PaymentsPage";
+import CheckoutPage from "./pages/payments/CheckoutPage";
+import PaymentSuccess from "./pages/payments/PaymentSuccess";
+import PaymentFailed from "./pages/payments/PaymentFailed";
+import NotificationsPage from "./pages/notifications/NotificationsPage";
 
 function App() {
   return (
@@ -26,8 +29,8 @@ function App() {
         <Toaster
           position="top-right"
           toastOptions={{
-            style: { borderRadius: '12px', fontSize: '14px' },
-            success: { iconTheme: { primary: '#4f46e5', secondary: '#fff' } },
+            style: { borderRadius: "12px", fontSize: "14px" },
+            success: { iconTheme: { primary: "#4f46e5", secondary: "#fff" } },
           }}
         />
         <Routes>
@@ -44,6 +47,9 @@ function App() {
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/orders" element={<OrdersPage />} />
             <Route path="/payments" element={<PaymentsPage />} />
+            <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="/payment-success" element={<PaymentSuccess />} />
+            <Route path="/payment-failed" element={<PaymentFailed />} />
             <Route path="/notifications" element={<NotificationsPage />} />
           </Route>
 
