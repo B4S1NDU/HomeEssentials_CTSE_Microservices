@@ -268,11 +268,11 @@ exports.deductStock = async (req, res, next) => {
       if (inventory) {
         // Deduct from total quantity
         inventory.quantity -= reservation.quantity;
-        // Remove from reserved
-      //Done
+        // Remove from reserved quantity now that stock has been permanently deducted
         inventory.reservedQuantity -= reservation.quantity;
         inventory.lastRestocked = Date.now();
         await inventory.save();
+        // Stock deduction process complete for product: reservation.productId
       }
 
       reservation.status = 'CONFIRMED';
