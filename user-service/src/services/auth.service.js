@@ -8,11 +8,20 @@ const { errorResponse } = require('../utils/response');
  * Authentication service
  */
 
-const register = async (firstName, lastName, email, password, address = null) => {
+const register = async (firstName, lastName, email, password, address = null, role = 'Customer') => {
   // Validate input
   const validationErrors = validateRegisterInput(firstName, lastName, email, password);
   if (validationErrors.length > 0) {
     const error = new Error(validationErrors.join('; '));
+    error.statusCode = 400;
+    error.code = 'VALIDATION_ERROR';
+    throw error;
+  }
+
+  // Validate role
+  const { isValidRole } = require('../utils/validators');
+  if (role && !isValidRole(role)) {
+    const error = new Error('Invalid role');
     error.statusCode = 400;
     error.code = 'VALIDATION_ERROR';
     throw error;
@@ -36,6 +45,7 @@ const register = async (firstName, lastName, email, password, address = null) =>
     lastName: lastName.trim(),
     email: email.toLowerCase().trim(),
     passwordHash,
+    role,
     address,
   });
 
@@ -109,7 +119,7 @@ const login = async (email, password) => {
   };
 };
 
-const changePassword = async (userId, oldPassword, newPassword) => {
+const changePassword = async (userId, oldPassword, newPassword, isAdmin = false) => {
   // Find user
   const user = await User.findById(userId);
   if (!user) {
@@ -119,13 +129,15 @@ const changePassword = async (userId, oldPassword, newPassword) => {
     throw error;
   }
 
-  // Validate old password
-  const isPasswordValid = await bcrypt.compare(oldPassword, user.passwordHash);
-  if (!isPasswordValid) {
-    const error = new Error('Old password is incorrect');
-    error.statusCode = 401;
-    error.code = 'INVALID_PASSWORD';
-    throw error;
+  // Validate old password (skip for admins changing other users' passwords)
+  if (!isAdmin) {
+    const isPasswordValid = await bcrypt.compare(oldPassword, user.passwordHash);
+    if (!isPasswordValid) {
+      const error = new Error('Old password is incorrect');
+      error.statusCode = 401;
+      error.code = 'INVALID_PASSWORD';
+      throw error;
+    }
   }
 
   // Validate new password

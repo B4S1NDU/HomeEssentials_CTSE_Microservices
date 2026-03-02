@@ -9,6 +9,15 @@ const { validateUpdateUserInput, isValidRole } = require('../utils/validators');
 const getUserById = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const authUser = req.user;
+
+    // Check authorization: users can only view their own profile, admins can view anyone
+    if (authUser.role !== 'Admin' && authUser.sub !== id) {
+      const error = new Error('Access denied. You can only view your own profile');
+      error.statusCode = 403;
+      error.code = 'FORBIDDEN';
+      throw error;
+    }
 
     const user = await User.findById(id);
 
@@ -79,6 +88,15 @@ const updateUser = async (req, res, next) => {
   try {
     const { id } = req.params;
     const updateData = req.body;
+    const authUser = req.user;
+
+    // Check authorization: users can only update their own profile, admins can update anyone
+    if (authUser.role !== 'Admin' && authUser.sub !== id) {
+      const error = new Error('Access denied. You can only update your own profile');
+      error.statusCode = 403;
+      error.code = 'FORBIDDEN';
+      throw error;
+    }
 
     // Validate input
     const validationErrors = validateUpdateUserInput(updateData);

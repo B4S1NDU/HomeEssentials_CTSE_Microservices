@@ -1,5 +1,6 @@
 const express = require('express');
 const authController = require('../controllers/auth.controller');
+const { verifyJWT } = require('../middleware/auth.middleware');
 
 const router = express.Router();
 
@@ -17,8 +18,8 @@ router.post('/login', authController.login);
 
 /**
  * PATCH /auth/:userId/password
- * Change user password
+ * Change user password (Auth required - users can change own password, admins can change any)
  */
-router.patch('/:userId/password', authController.changePassword);
+router.patch('/:userId/password', verifyJWT, authController.changePassword);
 
 module.exports = router;
