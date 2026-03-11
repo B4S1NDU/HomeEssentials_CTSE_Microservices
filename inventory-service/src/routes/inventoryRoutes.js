@@ -2,6 +2,10 @@ const express = require('express');
 const router = express.Router();
 const { body } = require('express-validator');
 const inventoryController = require('../controllers/inventoryController');
+const { verifyJWT, checkRole } = require('../middleware/auth');
+
+// Roles allowed to create/update inventory records directly
+const ADMIN_ROLES = ['Admin', 'StoreManager'];
 
 // Validation rules
 const inventoryValidation = [
@@ -36,14 +40,19 @@ const checkStockValidation = [
 ];
 
 // Routes
+// Public read routes
 router.get('/low-stock', inventoryController.getLowStockItems);
 router.get('/:productId', inventoryController.getInventoryByProductId);
 router.get('/', inventoryController.getAllInventory);
-router.post('/', inventoryValidation, inventoryController.createInventory);
-router.put('/:productId', inventoryController.updateInventory);
-router.post('/reserve', reservationValidation, inventoryController.reserveStock);
-router.post('/release', body('orderId').notEmpty(), inventoryController.releaseStock);
-router.post('/deduct', body('orderId').notEmpty(), inventoryController.deductStock);
-router.post('/check', checkStockValidation, inventoryController.checkStockAvailability);
+
+// Admin/StoreManager — direct inventory CRUD
+router.post('/', verifyJWT, checkRole(...ADMIN_ROLES), inventoryValidation, inventoryController.createInventory);
+router.put('/:productId', verifyJWT, checkRole(...ADMIN_ROLES), inventoryController.updateInventory);
+
+// Service-to-service routes (Order Service) — require valid JWT, any authenticated role
+router.post('/reserve', verifyJWT, reservationValidation, inventoryController.reserveStock);
+router.post('/release', verifyJWT, body('orderId').notEmpty(), inventoryController.releaseStock);
+router.post('/deduct', verifyJWT, body('orderId').notEmpty(), inventoryController.deductStock);
+router.post('/check', verifyJWT, checkStockValidation, inventoryController.checkStockAvailability);
 
 module.exports = router;

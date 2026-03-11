@@ -2,6 +2,10 @@ const express = require('express');
 const router = express.Router();
 const { body } = require('express-validator');
 const productController = require('../controllers/productController');
+const { verifyJWT, checkRole } = require('../middleware/auth');
+
+// Roles allowed to manage the product catalogue
+const ADMIN_ROLES = ['Admin', 'StoreManager'];
 
 // Validation rules
 const productValidation = [
@@ -36,12 +40,15 @@ const productValidation = [
 ];
 
 // Routes
+// Public read routes
 router.get('/categories/list', productController.getCategories);
 router.get('/category/:category', productController.getProductsByCategory);
 router.get('/', productController.getAllProducts);
 router.get('/:id', productController.getProductById);
-router.post('/', productValidation, productController.createProduct);
-router.put('/:id', productValidation, productController.updateProduct);
-router.delete('/:id', productController.deleteProduct);
+
+// Protected write routes — require valid JWT + Admin or StoreManager role
+router.post('/', verifyJWT, checkRole(...ADMIN_ROLES), productValidation, productController.createProduct);
+router.put('/:id', verifyJWT, checkRole(...ADMIN_ROLES), productValidation, productController.updateProduct);
+router.delete('/:id', verifyJWT, checkRole(...ADMIN_ROLES), productController.deleteProduct);
 
 module.exports = router;
