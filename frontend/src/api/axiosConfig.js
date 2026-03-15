@@ -24,3 +24,5 @@ export const userClient = createInstance(API_URLS.USER_SERVICE);
 export const productClient = createInstance(API_URLS.PRODUCT_SERVICE);
 export const inventoryClient = createInstance(API_URLS.INVENTORY_SERVICE);
 export const paymentClient = createInstance(API_URLS.PAYMENT_SERVICE);
+export const orderClient = createInstance(API_URLS.ORDER_SERVICE);
+export const notificationClient = createInstance(API_URLS.NOTIFICATION_SERVICE);

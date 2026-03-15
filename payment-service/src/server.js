@@ -3,6 +3,7 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const paymentRoutes = require("./routes/paymentRoutes");
 const connectDB = require("./config/db");
+const { successResponse } = require('./utils/response');
 
 dotenv.config();
 
@@ -12,6 +13,17 @@ app.use(express.json());
 
 // Connect to DB
 connectDB();
+
+// Health check endpoint
+app.get('/health', (_req, res) => {
+  res.status(200).json(
+    successResponse({
+      status: 'ok',
+      service: 'payment-service',
+      timestamp: new Date().toISOString(),
+    })
+  );
+});
 
 app.use("/api/payments", paymentRoutes);
 
