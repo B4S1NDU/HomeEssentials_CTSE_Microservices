@@ -21,13 +21,17 @@ export default function Header({ onMobileMenuToggle }) {
 
   const title = Object.entries(routeTitles).find(([path]) =>
     location.pathname.startsWith(path)
-  )?.[1] ?? 'HomeEssentials+';
+  )?.[1] ?? 'Dashboard';
 
   const handleLogout = () => {
     logout();
     toast.success('Logged out successfully');
     navigate('/login');
   };
+
+  // Portal branding based on user role
+  const portalName = user?.role === 'admin' ? 'Admin Portal' : 'HomeEssentials+ Customer Portal';
+  const portalSubtitle = user?.role === 'admin' ? 'Admin Management System' : 'Your household essentials marketplace';
 
   return (
     <header className="bg-white border-b border-gray-200 px-4 lg:px-6 py-4 flex items-center justify-between gap-4">
@@ -41,7 +45,8 @@ export default function Header({ onMobileMenuToggle }) {
         </button>
         <div>
           <h1 className="font-semibold text-gray-900 text-lg leading-tight">{title}</h1>
-          <p className="text-xs text-gray-400 hidden sm:block">HomeEssentials+ Management Portal</p>
+          <p className="text-xs text-gray-400 hidden sm:block">{portalName}</p>
+          <p className="text-xs text-gray-500 hidden sm:block">{portalSubtitle}</p>
         </div>
       </div>
 

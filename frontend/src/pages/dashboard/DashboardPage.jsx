@@ -154,7 +154,7 @@ export default function DashboardPage() {
               {user?.firstName} {user?.lastName} 👋
             </h2>
             <p className="text-indigo-100 text-sm mt-1">
-              {user?.role} · HomeEssentials+ Management Portal
+              {user?.role === 'admin' ? '⚙️ Admin Portal' : '🛒 HomeEssentials+ Customer Portal'}
             </p>
           </div>
           <div className="hidden sm:flex items-center gap-2 text-xs bg-white/20 px-3 py-1.5 rounded-full">

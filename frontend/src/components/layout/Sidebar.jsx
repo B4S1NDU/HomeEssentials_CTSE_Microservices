@@ -32,6 +32,10 @@ export default function Sidebar({ collapsed, onToggle }) {
     return item.roles.includes(user?.role);
   };
 
+  // Dynamic portal branding
+  const portalName = user?.role === 'admin' ? 'Admin Portal' : 'HomeEssentials+';
+  const portalSubtext = user?.role === 'admin' ? 'Admin System' : 'Customer Portal';
+
   return (
     <aside
       className={`relative flex flex-col h-full bg-gray-900 text-white transition-all duration-300
@@ -44,8 +48,8 @@ export default function Sidebar({ collapsed, onToggle }) {
         </div>
         {!collapsed && (
           <div>
-            <p className="font-bold text-sm leading-tight">HomeEssentials+</p>
-            <p className="text-[10px] text-gray-400">Admin Portal</p>
+            <p className="font-bold text-sm leading-tight">{portalName}</p>
+            <p className="text-[10px] text-gray-400">{portalSubtext}</p>
           </div>
         )}
       </div>
