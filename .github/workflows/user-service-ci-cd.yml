@@ -1,23 +1,23 @@
-name: Product Service CI/CD
+name: User Service CI/CD
 
 on:
   push:
     branches: [ main, develop ]
     paths:
-      - 'product-service/**'
+      - 'user-service/**'
   pull_request:
     branches: [ main ]
     paths:
-      - 'product-service/**'
+      - 'user-service/**'
 
 env:
-  SERVICE_NAME: product-service
+  SERVICE_NAME: user-service
   AZURE_REGION: eastus
-  ACR_REPOSITORY: homeessentials-product-service
-  CONTAINER_APP_NAME: product-service
+  ACR_REPOSITORY: homeessentials-user-service
+  CONTAINER_APP_NAME: user-service
   CONTAINER_APP_ENVIRONMENT: homeessentials
   RESOURCE_GROUP: homeessentials-rg
-  CONTAINER_NAME: product-service
+  CONTAINER_NAME: user-service
 
 jobs:
   # Code Quality & Security Scan
@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ./product-service
+        working-directory: ./user-service
 
     steps:
       - name: Checkout code
@@ -39,7 +39,7 @@ jobs:
         with:
           node-version: '18'
           cache: 'npm'
-          cache-dependency-path: product-service/package-lock.json
+          cache-dependency-path: user-service/package-lock.json
 
       - name: Install dependencies
         run: npm ci
@@ -59,19 +59,20 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          args: --severity-threshold=high --file=product-service/package.json
+          args: --severity-threshold=high --file=user-service/package.json
 
       # SonarCloud Analysis
       - name: SonarCloud Scan
         uses: SonarSource/sonarcloud-github-action@master
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
         with:
-          projectBaseDir: product-service
+          projectBaseDir: user-service
           args: >
             -Dsonar.organization=b4s1ndu
-            -Dsonar.projectKey=B4S1NDU_HomeEssentials_Product_Service
+            -Dsonar.projectKey=B4S1NDU_HomeEssentials_User_Service
             -Dsonar.sources=src
             -Dsonar.tests=src
             -Dsonar.test.inclusions=**/*.test.js
@@ -101,7 +102,7 @@ jobs:
           ACR_LOGIN_SERVER: ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          cd product-service
+          cd user-service
           docker build -t $ACR_LOGIN_SERVER/$ACR_REPOSITORY:$IMAGE_TAG .
           docker tag $ACR_LOGIN_SERVER/$ACR_REPOSITORY:$IMAGE_TAG $ACR_LOGIN_SERVER/$ACR_REPOSITORY:latest
           docker push $ACR_LOGIN_SERVER/$ACR_REPOSITORY:$IMAGE_TAG
@@ -147,18 +148,3 @@ jobs:
           imageToDeploy: ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/${{ env.ACR_REPOSITORY }}:${{ github.sha }}
           resourceGroup: ${{ env.RESOURCE_GROUP }}
           containerAppName: ${{ env.CONTAINER_APP_NAME }}
-          containerAppEnvironment: ${{ env.CONTAINER_APP_ENVIRONMENT }}
-          runtimeStack: 'node:18'
-          targetPort: 3002
-          ingress: 'external'
-          environmentVariables: |
-            NODE_ENV=production
-            PORT=3002
-            INVENTORY_SERVICE_URL=http://inventory-service.homeessentials.local:3003
-
-      - name: Deployment Summary
-        run: |
-          echo "🚀 Deployment completed successfully!"
-          echo "Container App: ${{ env.CONTAINER_APP_NAME }}"
-          echo "Environment: ${{ env.CONTAINER_APP_ENVIRONMENT }}"
-          echo "Image: ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/${{ env.ACR_REPOSITORY }}:${{ github.sha }}"

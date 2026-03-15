@@ -40,7 +40,12 @@ out/
 # Docker
 .docker/
 
-# AWS
+# Azure
+.azure/
+azure-local.settings.json
+*.publishsettings
+
+# AWS (Legacy)
 .aws/
 
 # Temporary files

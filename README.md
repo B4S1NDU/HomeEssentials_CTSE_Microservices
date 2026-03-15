@@ -13,7 +13,7 @@ A cloud-native microservices-based e-commerce platform for household essentials 
 | **Inventory Service** | **Your Service** | Node.js + Express | 3003 | Stock & inventory management |
 | **Order Service** | Student 2 | Node.js + Express | 3004 | Order orchestration & lifecycle |
 | **Payment Service** | Student 3 | Node.js + Express | 3005 | Payment processing |
-| **Notification Service** | Student 4 | Node.js + Express | 3006 | Notification delivery |
+| **Notification Service** | Student 1 | Node.js + Express | 3006 | Notification delivery |
 
 ## 🔄 Service Communication Flow
 

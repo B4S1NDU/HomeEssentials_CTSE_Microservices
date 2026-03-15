@@ -1,0 +1,67 @@
+apiVersion: containerapp.io/v1
+kind: ContainerApp
+metadata:
+  name: product-service
+  resourceGroup: homeessentials-rg
+  location: eastus
+spec:
+  environment: homeessentials
+  template:
+    containers:
+      - name: product-service
+        image: homeessentialsacr.azurecr.io/homeessentials-product-service:latest
+        resources:
+          cpu: 0.5
+          memory: 1Gi
+        ports:
+          - containerPort: 3002
+            protocol: tcp
+        env:
+          - name: NODE_ENV
+            value: production
+          - name: PORT
+            value: '3002'
+          - name: INVENTORY_SERVICE_URL
+            value: http://inventory-service.homeessentials.local:3003
+          - name: MONGODB_URI
+            secretRef: mongodb-uri
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3002
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3002
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+    scale:
+      minReplicas: 1
+      maxReplicas: 3
+      rules:
+        - name: http-requests
+          custom:
+            rule: http.requests.total
+            metadata:
+              desiredRPS: '100'
+  configuration:
+    ingress:
+      external: true
+      targetPort: 3002
+      allowInsecure: false
+      traffic:
+        - latest:
+          weight: 100
+    secrets:
+      - name: mongodb-uri
+        keyVaultUrl: https://homeessentials-kv.vault.azure.net/secrets/mongodb-uri
+    registry:
+      - server: homeessentialsacr.azurecr.io
+        username: homeessentialsacr
+        passwordSecretRef: acr-password
