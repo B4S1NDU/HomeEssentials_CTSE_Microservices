@@ -2,7 +2,7 @@ const { successResponse } = require('../utils/response');
 const authService = require('../services/auth.service');
 
 /**
- * Authentication controllers
+ * Authentication controller
  */
 
 const register = async (req, res, next) => {
