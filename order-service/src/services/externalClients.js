@@ -9,49 +9,77 @@ const httpClient = axios.create({
   timeout: parseInt(process.env.HTTP_CLIENT_TIMEOUT_MS, 10) || 5000
 });
 
-async function validateUser(userId) {
-  const response = await httpClient.get(`${USER_SERVICE_BASE_URL}/api/users/${userId}`);
+async function validateUser(userId, authorization) {
+  const response = await httpClient.get(`${USER_SERVICE_BASE_URL}/api/users/${userId}`, {
+    headers: authorization ? { Authorization: authorization } : undefined
+  });
   return response.data?.data || response.data;
 }
 
-async function validateProduct(productId) {
-  const response = await httpClient.get(`${PRODUCT_SERVICE_BASE_URL}/api/products/${productId}`);
+async function validateProduct(productId, authorization) {
+  const response = await httpClient.get(`${PRODUCT_SERVICE_BASE_URL}/api/products/${productId}`, {
+    headers: authorization ? { Authorization: authorization } : undefined
+  });
   return response.data?.data || response.data;
 }
 
-async function checkStock(productId, quantity) {
-  const response = await httpClient.post(`${INVENTORY_SERVICE_BASE_URL}/api/inventory/check`, {
-    productId,
-    quantity
-  });
+async function checkStock(productId, quantity, authorization) {
+  const response = await httpClient.post(
+    `${INVENTORY_SERVICE_BASE_URL}/api/inventory/check`,
+    {
+      productId,
+      quantity
+    },
+    {
+      headers: authorization ? { Authorization: authorization } : undefined
+    }
+  );
   return response.data;
 }
 
-async function reserveStock(productId, orderId, quantity) {
-  const response = await httpClient.post(`${INVENTORY_SERVICE_BASE_URL}/api/inventory/reserve`, {
-    productId,
-    orderId,
-    quantity
-  });
+async function reserveStock(productId, orderId, quantity, authorization) {
+  const response = await httpClient.post(
+    `${INVENTORY_SERVICE_BASE_URL}/api/inventory/reserve`,
+    {
+      productId,
+      orderId,
+      quantity
+    },
+    {
+      headers: authorization ? { Authorization: authorization } : undefined
+    }
+  );
   return response.data;
 }
 
-async function deductStock(orderId) {
-  const response = await httpClient.post(`${INVENTORY_SERVICE_BASE_URL}/api/inventory/deduct`, {
-    orderId
-  });
+async function deductStock(orderId, authorization) {
+  const response = await httpClient.post(
+    `${INVENTORY_SERVICE_BASE_URL}/api/inventory/deduct`,
+    {
+      orderId
+    },
+    {
+      headers: authorization ? { Authorization: authorization } : undefined
+    }
+  );
   return response.data;
 }
 
-async function releaseStock(orderId) {
-  const response = await httpClient.post(`${INVENTORY_SERVICE_BASE_URL}/api/inventory/release`, {
-    orderId
-  });
+async function releaseStock(orderId, authorization) {
+  const response = await httpClient.post(
+    `${INVENTORY_SERVICE_BASE_URL}/api/inventory/release`,
+    {
+      orderId
+    },
+    {
+      headers: authorization ? { Authorization: authorization } : undefined
+    }
+  );
   return response.data;
 }
 
 async function processPayment({ orderId, userId, amount }) {
-  const response = await httpClient.post(`${PAYMENT_SERVICE_BASE_URL}/api/payments`, {
+  const response = await httpClient.post(`${PAYMENT_SERVICE_BASE_URL}/api/payments/create`, {
     orderId,
     userId,
     amount

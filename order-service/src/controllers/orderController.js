@@ -23,7 +23,9 @@ exports.createOrder = async (req, res, next) => {
       throw error;
     }
 
-    await validateUser(userId);
+    const authorization = req.headers.authorization;
+
+    await validateUser(userId, authorization);
 
     const enrichedItems = [];
     const orderId = `ORD-${crypto.randomUUID()}`;
@@ -35,9 +37,9 @@ exports.createOrder = async (req, res, next) => {
         throw error;
       }
 
-      const product = await validateProduct(item.productId);
+      const product = await validateProduct(item.productId, authorization);
 
-      const stockCheck = await checkStock(item.productId, item.quantity);
+      const stockCheck = await checkStock(item.productId, item.quantity, authorization);
       if (!stockCheck.available) {
         const error = new Error(
           `Insufficient stock for product ${item.productId}, requested ${item.quantity}`
@@ -46,7 +48,7 @@ exports.createOrder = async (req, res, next) => {
         throw error;
       }
 
-      await reserveStock(item.productId, orderId, item.quantity);
+      await reserveStock(item.productId, orderId, item.quantity, authorization);
 
       enrichedItems.push({
         productId: item.productId,
@@ -70,9 +72,9 @@ exports.createOrder = async (req, res, next) => {
     let status = paymentSuccess ? 'CONFIRMED' : 'CANCELLED';
 
     if (paymentSuccess) {
-      await deductStock(orderId);
+      await deductStock(orderId, authorization);
     } else {
-      await releaseStock(orderId);
+      await releaseStock(orderId, authorization);
     }
 
     const order = await Order.create({
