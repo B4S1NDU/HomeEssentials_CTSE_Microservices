@@ -116,6 +116,19 @@ exports.getOrderById = async (req, res, next) => {
   }
 };
 
+exports.getAllOrders = async (req, res, next) => {
+  try {
+    const orders = await Order.find().sort({ createdAt: -1 });
+
+    res.json({
+      success: true,
+      data: orders
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 exports.getOrdersByUser = async (req, res, next) => {
   try {
     const { userId } = req.params;
@@ -157,6 +170,27 @@ exports.updateOrderStatus = async (req, res, next) => {
       success: true,
       message: 'Order status updated successfully',
       data: order
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.deleteOrder = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const deleted = await Order.findOneAndDelete({ orderId: id });
+
+    if (!deleted) {
+      const err = new Error('Order not found');
+      err.statusCode = 404;
+      throw err;
+    }
+
+    res.json({
+      success: true,
+      message: 'Order deleted successfully'
     });
   } catch (error) {
     next(error);

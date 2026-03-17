@@ -9,7 +9,7 @@ import Badge from "../../components/common/Badge";
 import Table from "../../components/common/Table";
 
 export default function OrdersPage() {
-  const { user } = useAuth();
+  const { user, isAdminOrManager } = useAuth();
   const resolvedUserId = user?.id ?? user?._id ?? "";
   const [form, setForm] = useState({
     userId: resolvedUserId,
@@ -27,6 +27,20 @@ export default function OrdersPage() {
   };
 
   const loadOrders = async (userId) => {
+    if (isAdminOrManager()) {
+      try {
+        setOrdersLoading(true);
+        const res = await ordersApi.getAll();
+        setOrders(res.data?.data ?? []);
+      } catch (err) {
+        console.error(err);
+        toast.error(err.response?.data?.message || "Failed to load all orders");
+      } finally {
+        setOrdersLoading(false);
+      }
+      return;
+    }
+
     if (!userId) return;
     try {
       setOrdersLoading(true);
@@ -42,7 +56,7 @@ export default function OrdersPage() {
 
   React.useEffect(() => {
     setForm((prev) => ({ ...prev, userId: resolvedUserId }));
-    if (resolvedUserId) loadOrders(resolvedUserId);
+    if (resolvedUserId || isAdminOrManager()) loadOrders(resolvedUserId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [resolvedUserId]);
 
@@ -126,6 +140,29 @@ export default function OrdersPage() {
       );
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleUpdateStatus = async (orderId, status) => {
+    try {
+      await ordersApi.updateStatus(orderId, status);
+      toast.success("Order status updated");
+      await loadOrders(form.userId);
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.message || "Failed to update status");
+    }
+  };
+
+  const handleDelete = async (orderId) => {
+    if (!window.confirm("Delete this order?")) return;
+    try {
+      await ordersApi.remove(orderId);
+      toast.success("Order deleted");
+      await loadOrders(form.userId);
+    } catch (err) {
+      console.error(err);
+      toast.error(err.response?.data?.message || "Failed to delete order");
     }
   };
 
@@ -257,16 +294,60 @@ export default function OrdersPage() {
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">Order History</h3>
                 <p className="text-sm text-gray-500">
-                  Showing orders for <span className="font-mono">{form.userId || "—"}</span>
+                  {isAdminOrManager()
+                    ? "Showing all orders (Admin/Manager view)"
+                    : (
+                      <>
+                        Showing orders for{" "}
+                        <span className="font-mono">{form.userId || "—"}</span>
+                      </>
+                    )}
                 </p>
               </div>
             </div>
 
             <Table
-              columns={columns}
+              columns={
+                isAdminOrManager()
+                  ? [
+                      ...columns,
+                      {
+                        key: "actions",
+                        label: "Actions",
+                        render: (_v, row) => (
+                          <div className="flex items-center gap-2">
+                            <select
+                              className="text-xs rounded-md border-gray-300"
+                              value={row.status}
+                              onChange={(e) =>
+                                handleUpdateStatus(row.orderId, e.target.value)
+                              }
+                            >
+                              <option value="PENDING">PENDING</option>
+                              <option value="CONFIRMED">CONFIRMED</option>
+                              <option value="CANCELLED">CANCELLED</option>
+                            </select>
+                            <Button
+                              variant="secondary"
+                              size="sm"
+                              className="!px-2 !py-1 text-xs"
+                              onClick={() => handleDelete(row.orderId)}
+                            >
+                              Delete
+                            </Button>
+                          </div>
+                        ),
+                      },
+                    ]
+                  : columns
+              }
               data={orders}
               loading={ordersLoading}
-              emptyMessage={!form.userId ? "Add a User ID to load orders." : "No orders found."}
+              emptyMessage={
+                !form.userId && !isAdminOrManager()
+                  ? "Add a User ID to load orders."
+                  : "No orders found."
+              }
             />
           </div>
         </div>

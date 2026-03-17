@@ -41,6 +41,26 @@ paths:
           description: Validation error or insufficient stock
         '500':
           description: Internal server error
+    get:
+      tags:
+        - Orders
+      summary: Get all orders (admin only)
+      description: Returns all orders in the system. Intended for admin/manager views.
+      responses:
+        '200':
+          description: List of all orders
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  data:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/Order'
 
   /api/orders/{id}:
     get:
@@ -122,6 +142,24 @@ paths:
                 $ref: '#/components/schemas/OrderResponse'
         '400':
           description: Invalid status
+        '404':
+          description: Order not found
+
+  /api/orders/{id}:
+    delete:
+      tags:
+        - Orders
+      summary: Delete an order (admin only)
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+          description: Order ID (orderId)
+      responses:
+        '200':
+          description: Order deleted successfully
         '404':
           description: Order not found
 
