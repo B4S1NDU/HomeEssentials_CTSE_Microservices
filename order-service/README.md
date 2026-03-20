@@ -16,7 +16,7 @@ This is the core orchestrator service that manages the complete order lifecycle 
 - Order status management
 - Order history
 
-## 🔌 API Endpoints (To Implement)
+## 🔌 API Endpoints
 
 | Method | Endpoint | Description |
 |--------|----------|-------------|

@@ -1,0 +1,99 @@
+const axios = require('axios');
+
+const USER_SERVICE_BASE_URL = process.env.USER_SERVICE_BASE_URL || 'http://localhost:3001';
+const PRODUCT_SERVICE_BASE_URL = process.env.PRODUCT_SERVICE_BASE_URL || 'http://localhost:3002';
+const INVENTORY_SERVICE_BASE_URL = process.env.INVENTORY_SERVICE_BASE_URL || 'http://localhost:3003';
+const PAYMENT_SERVICE_BASE_URL = process.env.PAYMENT_SERVICE_BASE_URL || 'http://localhost:3005';
+
+const httpClient = axios.create({
+  timeout: parseInt(process.env.HTTP_CLIENT_TIMEOUT_MS, 10) || 5000
+});
+
+async function validateUser(userId, authorization) {
+  const response = await httpClient.get(`${USER_SERVICE_BASE_URL}/api/users/${userId}`, {
+    headers: authorization ? { Authorization: authorization } : undefined
+  });
+  return response.data?.data || response.data;
+}
+
+async function validateProduct(productId, authorization) {
+  const response = await httpClient.get(`${PRODUCT_SERVICE_BASE_URL}/api/products/${productId}`, {
+    headers: authorization ? { Authorization: authorization } : undefined
+  });
+  return response.data?.data || response.data;
+}
+
+async function checkStock(productId, quantity, authorization) {
+  const response = await httpClient.post(
+    `${INVENTORY_SERVICE_BASE_URL}/api/inventory/check`,
+    {
+      productId,
+      quantity
+    },
+    {
+      headers: authorization ? { Authorization: authorization } : undefined
+    }
+  );
+  return response.data;
+}
+
+async function reserveStock(productId, orderId, quantity, authorization) {
+  const response = await httpClient.post(
+    `${INVENTORY_SERVICE_BASE_URL}/api/inventory/reserve`,
+    {
+      productId,
+      orderId,
+      quantity
+    },
+    {
+      headers: authorization ? { Authorization: authorization } : undefined
+    }
+  );
+  return response.data;
+}
+
+async function deductStock(orderId, authorization) {
+  const response = await httpClient.post(
+    `${INVENTORY_SERVICE_BASE_URL}/api/inventory/deduct`,
+    {
+      orderId
+    },
+    {
+      headers: authorization ? { Authorization: authorization } : undefined
+    }
+  );
+  return response.data;
+}
+
+async function releaseStock(orderId, authorization) {
+  const response = await httpClient.post(
+    `${INVENTORY_SERVICE_BASE_URL}/api/inventory/release`,
+    {
+      orderId
+    },
+    {
+      headers: authorization ? { Authorization: authorization } : undefined
+    }
+  );
+  return response.data;
+}
+
+async function processPayment({ orderId, userId, amount }) {
+  const response = await httpClient.post(`${PAYMENT_SERVICE_BASE_URL}/api/payments/create`, {
+    orderId,
+    userId,
+    amount
+  });
+  return response.data;
+}
+
+module.exports = {
+  validateUser,
+  validateProduct,
+  checkStock,
+  reserveStock,
+  deductStock,
+  releaseStock,
+  processPayment
+};
+
