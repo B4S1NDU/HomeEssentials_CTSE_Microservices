@@ -7,7 +7,7 @@ const PORT = process.env.PORT || 3003;
 // Connect to MongoDB
 connectDB();
 
-// Start the server
+// Start to server
 const server = app.listen(PORT, () => {
   console.log(`🚀 Inventory Service running on port ${PORT}`);
   console.log(`📚 API Documentation: http://localhost:${PORT}/api-docs`);
