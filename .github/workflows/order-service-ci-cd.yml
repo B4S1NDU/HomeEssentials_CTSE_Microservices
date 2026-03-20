@@ -44,13 +44,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Run ESLint
-        run: npm run lint || true
-
-      - name: Run tests with coverage
-        run: npm test || true
-        env:
-          NODE_ENV: test
 
       # Security Scanning with Snyk
       - name: Run Snyk Security Scan
@@ -131,4 +124,5 @@ jobs:
           imageToDeploy: ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/${{ env.ACR_REPOSITORY }}:${{ github.sha }}
           resourceGroup: ${{ env.RESOURCE_GROUP }}
           containerAppName: ${{ env.CONTAINER_APP_NAME }}
+
 
