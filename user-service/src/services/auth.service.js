@@ -3,6 +3,7 @@ const User = require('../models/User');
 const { issueToken } = require('./jwt.service');
 const { validateRegisterInput, validateLoginInput } = require('../utils/validators');
 const { errorResponse } = require('../utils/response');
+const { sendUserRegisteredNotification } = require('./notification.service');
 
 /**
  * Authentication service
@@ -51,6 +52,14 @@ const register = async (firstName, lastName, email, password, address = null, ro
 
   // Issue JWT token
   const accessToken = issueToken(user._id, user.role, user.email);
+
+  // Trigger registration notification in background
+  sendUserRegisteredNotification({
+    userId: user._id.toString(),
+    email: user.email,
+    firstName: user.firstName,
+    lastName: user.lastName,
+  });
 
   // Return safe user object
   const safeUser = {

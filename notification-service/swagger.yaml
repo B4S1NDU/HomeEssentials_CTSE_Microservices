@@ -1,0 +1,183 @@
+openapi: 3.0.0
+info:
+  title: Notification Service API
+  description: Microservice for handling notifications (email, SMS, in-app)
+  version: 1.0.0
+  contact:
+    name: HomeEssentials+ Team
+  license:
+    name: MIT
+
+servers:
+  - url: http://localhost:3006/api
+    description: Local development
+  - url: https://api.homeessentials.com/notifications
+    description: Production
+
+paths:
+  /notifications/send:
+    post:
+      summary: Send a notification
+      description: Receives notification request from other microservices and sends it based on type
+      tags:
+        - Notifications
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - userId
+                - email
+                - type
+              properties:
+                userId:
+                  type: string
+                  description: User ID
+                  example: "507f1f77bcf86cd799439011"
+                email:
+                  type: string
+                  format: email
+                  description: Recipient email
+                  example: "user@example.com"
+                type:
+                  type: string
+                  enum:
+                    - PASSWORD_CHANGED
+                    - USER_REGISTERED
+                    - ORDER_CREATED
+                    - ORDER_SHIPPED
+                    - ORDER_DELIVERED
+                    - ORDER_CANCELLED
+                    - PAYMENT_SUCCESS
+                    - PAYMENT_FAILED
+                    - LOW_STOCK_ALERT
+                    - ACCOUNT_VERIFIED
+                  description: Notification type
+                message:
+                  type: string
+                  description: Custom message (optional)
+                metadata:
+                  type: object
+                  description: Additional metadata based on notification type
+                  properties:
+                    orderId:
+                      type: string
+                    productId:
+                      type: string
+                    amount:
+                      type: number
+                    reason:
+                      type: string
+      responses:
+        "201":
+          description: Notification queued for delivery
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
+                  message:
+                    type: string
+                    example: "Notification queued for delivery"
+                  data:
+                    type: object
+                    properties:
+                      notificationId:
+                        type: string
+                      status:
+                        type: string
+                        example: "pending"
+        "400":
+          description: Validation error
+        "500":
+          description: Server error
+
+  /notifications/{id}:
+    get:
+      summary: Get notification by ID
+      tags:
+        - Notifications
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Notification details
+        "404":
+          description: Notification not found
+    delete:
+      summary: Delete notification
+      tags:
+        - Notifications
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Notification deleted
+        "404":
+          description: Notification not found
+
+  /notifications/user/{userId}:
+    get:
+      summary: Get all notifications for a user
+      tags:
+        - Notifications
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          schema:
+            type: string
+        - name: page
+          in: query
+          schema:
+            type: integer
+            default: 1
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            default: 10
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [pending, sent, failed, read]
+      responses:
+        "200":
+          description: List of user notifications with pagination
+        "404":
+          description: User not found
+
+  /notifications/{id}/read:
+    patch:
+      summary: Mark notification as read
+      tags:
+        - Notifications
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Notification marked as read
+        "404":
+          description: Notification not found
+
+tags:
+  - name: Notifications
+    description: Notification management endpoints
