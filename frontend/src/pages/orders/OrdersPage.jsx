@@ -11,7 +11,14 @@ import {
 import { ordersApi } from "../../api/orderApi";
 import { useAuth } from "../../context/AuthContext";
 import toast from "react-hot-toast";
-import { extractErrorMessage, formatCurrency, formatDateTime } from "../../utils/helpers";
+import {
+  extractErrorMessage,
+  formatCurrency,
+  formatDateTime,
+  formatOrderAddress,
+  formatDeliveryRange,
+  toDateInputValue,
+} from "../../utils/helpers";
 import Button from "../../components/common/Button";
 import Badge from "../../components/common/Badge";
 import Table from "../../components/common/Table";
@@ -28,6 +35,8 @@ export default function OrdersPage() {
   const [detailModalOpen, setDetailModalOpen] = useState(false);
   const [detailOrder, setDetailOrder] = useState(null);
   const [detailLoading, setDetailLoading] = useState(false);
+  const [deliveryForm, setDeliveryForm] = useState({ start: "", end: "" });
+  const [deliverySaving, setDeliverySaving] = useState(false);
   const [statusFilter, setStatusFilter] = useState("ALL");
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -82,13 +91,20 @@ export default function OrdersPage() {
               <div className="text-xs text-gray-500">
                 {row.createdAt ? new Date(row.createdAt).toLocaleString() : "—"}
               </div>
+              {row.customerName && (
+                <div className="text-xs text-indigo-700 font-medium truncate max-w-[220px]">
+                  {row.customerName}
+                </div>
+              )}
             </div>
           ) : (
             <div className="space-y-0.5">
-              <div className="font-semibold text-gray-900">
+              <div className="font-semibold text-gray-900 truncate max-w-[200px]">
+                {row.customerName || "—"}
+              </div>
+              <div className="text-xs text-gray-500">
                 {row.createdAt ? new Date(row.createdAt).toLocaleString() : "—"}
               </div>
-              <div className="text-xs text-gray-500">Order</div>
             </div>
           ),
       },
@@ -96,6 +112,15 @@ export default function OrdersPage() {
         key: "status",
         label: "Status",
         render: (v) => <Badge className={statusBadgeClass(v)}>{v}</Badge>,
+      },
+      {
+        key: "delivery",
+        label: "Est. delivery",
+        render: (_v, row) => (
+          <span className="text-xs text-gray-700 max-w-[150px] inline-block leading-snug">
+            {formatDeliveryRange(row.deliveryWindowStart, row.deliveryWindowEnd)}
+          </span>
+        ),
       },
       {
         key: "items",
@@ -140,7 +165,8 @@ export default function OrdersPage() {
             (it.productName || "").toLowerCase().includes(term)
           )
         : false;
-      const matchSearch = dateStr.includes(term) || productMatch;
+      const nameMatch = (o.customerName || "").toLowerCase().includes(term);
+      const matchSearch = dateStr.includes(term) || productMatch || nameMatch;
       return matchStatus && matchSearch;
     });
   }, [orders, statusFilter, searchTerm, isStaff]);
@@ -177,6 +203,54 @@ export default function OrdersPage() {
       setDetailOrder(row);
     } finally {
       setDetailLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    if (detailOrder) {
+      setDeliveryForm({
+        start: toDateInputValue(detailOrder.deliveryWindowStart),
+        end: toDateInputValue(detailOrder.deliveryWindowEnd),
+      });
+    }
+  }, [detailOrder]);
+
+  const handleSaveDelivery = async () => {
+    if (!detailOrder?.orderId) return;
+    setDeliverySaving(true);
+    try {
+      await ordersApi.updateDelivery(detailOrder.orderId, {
+        deliveryWindowStart: deliveryForm.start || null,
+        deliveryWindowEnd: deliveryForm.end || null,
+      });
+      toast.success("Delivery window saved");
+      const res = await ordersApi.getById(detailOrder.orderId);
+      setDetailOrder(res.data?.data ?? res.data);
+      await loadOrders();
+    } catch (err) {
+      toast.error(extractErrorMessage(err));
+    } finally {
+      setDeliverySaving(false);
+    }
+  };
+
+  const handleClearDeliveryWindow = async () => {
+    if (!detailOrder?.orderId) return;
+    setDeliverySaving(true);
+    try {
+      await ordersApi.updateDelivery(detailOrder.orderId, {
+        deliveryWindowStart: null,
+        deliveryWindowEnd: null,
+      });
+      setDeliveryForm({ start: "", end: "" });
+      toast.success("Delivery window cleared");
+      const res = await ordersApi.getById(detailOrder.orderId);
+      setDetailOrder(res.data?.data ?? res.data);
+      await loadOrders();
+    } catch (err) {
+      toast.error(extractErrorMessage(err));
+    } finally {
+      setDeliverySaving(false);
     }
   };
 
@@ -294,7 +368,7 @@ export default function OrdersPage() {
                   <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 pointer-events-none" />
                   <input
                     type="search"
-                    placeholder={isStaff ? "Search by order ID…" : "Search by date or product name…"}
+                    placeholder={isStaff ? "Search by order ID…" : "Search by name, date, or product…"}
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
                     className="w-full pl-9 pr-3 py-2.5 text-sm border border-gray-200 rounded-xl bg-white shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
@@ -372,47 +446,112 @@ export default function OrdersPage() {
           <div className="space-y-5">
             <div className="flex flex-wrap items-start justify-between gap-3 pb-4 border-b border-gray-100">
               <div>
+                <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  {isStaff ? "Order ID" : "Order date & time"}
+                </p>
                 {isStaff ? (
-                  <>
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Order ID</p>
-                    <p className="font-mono text-sm font-semibold text-gray-900 mt-0.5 break-all">
-                      {detailOrder.orderId}
-                    </p>
-                  </>
+                  <p className="font-mono text-sm font-semibold text-gray-900 mt-0.5 break-all">
+                    {detailOrder.orderId}
+                  </p>
                 ) : (
-                  <>
-                    <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Placed on</p>
-                    <p className="text-sm font-semibold text-gray-900 mt-0.5">
-                      {formatDateTime(detailOrder.createdAt)}
-                    </p>
-                  </>
+                  <p className="text-lg font-semibold text-gray-900 mt-0.5">
+                    {formatDateTime(detailOrder.createdAt)}
+                  </p>
                 )}
               </div>
               <Badge className={statusBadgeClass(detailOrder.status)}>{detailOrder.status}</Badge>
             </div>
 
-            <div className="grid sm:grid-cols-2 gap-4 text-sm">
-              {isStaff && (
-                <>
+            <div className="rounded-xl border border-gray-200 bg-gradient-to-br from-gray-50 to-white p-4 space-y-3">
+              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">Customer & delivery</p>
+              <div className="grid sm:grid-cols-2 gap-4 text-sm">
+                <div>
+                  <p className="text-xs text-gray-500">Name</p>
+                  <p className="font-medium text-gray-900 mt-0.5">{detailOrder.customerName || "—"}</p>
+                </div>
+                {isStaff && (
                   <div>
-                    <p className="text-xs text-gray-500">Customer (user ID)</p>
-                    <p className="font-mono text-gray-900 mt-0.5 break-all">{detailOrder.userId ?? "—"}</p>
+                    <p className="text-xs text-gray-500">Order date & time</p>
+                    <p className="text-gray-900 mt-0.5">{formatDateTime(detailOrder.createdAt)}</p>
                   </div>
-                  <div>
-                    <p className="text-xs text-gray-500">Payment ID</p>
-                    <p className="font-mono text-gray-900 mt-0.5 break-all">{detailOrder.paymentId ?? "—"}</p>
-                  </div>
-                </>
-              )}
-              <div>
-                <p className="text-xs text-gray-500">Created</p>
-                <p className="text-gray-900 mt-0.5">{formatDateTime(detailOrder.createdAt)}</p>
-              </div>
-              <div>
-                <p className="text-xs text-gray-500">Updated</p>
-                <p className="text-gray-900 mt-0.5">{formatDateTime(detailOrder.updatedAt)}</p>
+                )}
+                <div className="sm:col-span-2">
+                  <p className="text-xs text-gray-500">Delivery address</p>
+                  <p className="text-gray-800 mt-0.5 leading-relaxed whitespace-pre-line">
+                    {formatOrderAddress(detailOrder.deliveryAddress)}
+                  </p>
+                </div>
+                <div className="sm:col-span-2">
+                  <p className="text-xs text-gray-500">Estimated delivery window</p>
+                  <p className="font-medium text-indigo-900 mt-0.5">
+                    {formatDeliveryRange(detailOrder.deliveryWindowStart, detailOrder.deliveryWindowEnd)}
+                  </p>
+                </div>
               </div>
             </div>
+
+            {isStaff && (
+              <div className="rounded-xl border border-indigo-200 bg-indigo-50/60 p-4 space-y-3">
+                <p className="text-sm font-semibold text-gray-900">Set delivery window (admin)</p>
+                <p className="text-xs text-gray-600">
+                  Choose the earliest and latest calendar dates the order can be delivered.
+                </p>
+                <div className="grid sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Earliest date</label>
+                    <input
+                      type="date"
+                      value={deliveryForm.start}
+                      onChange={(e) =>
+                        setDeliveryForm((f) => ({ ...f, start: e.target.value }))
+                      }
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-gray-700 mb-1">Latest date</label>
+                    <input
+                      type="date"
+                      value={deliveryForm.end}
+                      onChange={(e) =>
+                        setDeliveryForm((f) => ({ ...f, end: e.target.value }))
+                      }
+                      className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                    />
+                  </div>
+                </div>
+                <div className="flex flex-wrap gap-2 pt-1">
+                  <Button size="sm" loading={deliverySaving} onClick={handleSaveDelivery}>
+                    Save delivery window
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
+                    loading={deliverySaving}
+                    onClick={handleClearDeliveryWindow}
+                  >
+                    Clear window
+                  </Button>
+                </div>
+              </div>
+            )}
+
+            {isStaff && (
+              <div className="grid sm:grid-cols-2 gap-4 text-sm border-t border-gray-100 pt-4">
+                <div>
+                  <p className="text-xs text-gray-500">Customer (user ID)</p>
+                  <p className="font-mono text-gray-900 mt-0.5 break-all">{detailOrder.userId ?? "—"}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Payment ID</p>
+                  <p className="font-mono text-gray-900 mt-0.5 break-all">{detailOrder.paymentId ?? "—"}</p>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-500">Last updated</p>
+                  <p className="text-gray-900 mt-0.5">{formatDateTime(detailOrder.updatedAt)}</p>
+                </div>
+              </div>
+            )}
 
             <div>
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Line items</p>

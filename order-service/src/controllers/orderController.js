@@ -13,6 +13,27 @@ const {
 const calculateTotalAmount = (items) =>
   items.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
+function buildCustomerSnapshot(user) {
+  if (!user || typeof user !== 'object') {
+    return { customerName: '', deliveryAddress: undefined };
+  }
+  const first = (user.firstName || '').trim();
+  const last = (user.lastName || '').trim();
+  const customerName = [first, last].filter(Boolean).join(' ') || user.email || 'Customer';
+  let deliveryAddress;
+  if (user.address && typeof user.address === 'object') {
+    deliveryAddress = {
+      line1: user.address.line1 || '',
+      line2: user.address.line2 || '',
+      city: user.address.city || '',
+      district: user.address.district || '',
+      postalCode: user.address.postalCode || '',
+      country: user.address.country || ''
+    };
+  }
+  return { customerName, deliveryAddress };
+}
+
 exports.createOrder = async (req, res, next) => {
   try {
     const { userId, items } = req.body;
@@ -25,7 +46,8 @@ exports.createOrder = async (req, res, next) => {
 
     const authorization = req.headers.authorization;
 
-    await validateUser(userId, authorization);
+    const userData = await validateUser(userId, authorization);
+    const { customerName, deliveryAddress } = buildCustomerSnapshot(userData);
 
     const enrichedItems = [];
     const orderId = `ORD-${crypto.randomUUID()}`;
@@ -80,6 +102,8 @@ exports.createOrder = async (req, res, next) => {
     const order = await Order.create({
       orderId,
       userId,
+      customerName,
+      deliveryAddress,
       items: enrichedItems,
       totalAmount,
       status,
@@ -170,6 +194,79 @@ exports.updateOrderStatus = async (req, res, next) => {
       success: true,
       message: 'Order status updated successfully',
       data: order
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.updateDeliveryWindow = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { deliveryWindowStart, deliveryWindowEnd } = req.body;
+
+    const order = await Order.findOne({ orderId: id });
+    if (!order) {
+      const err = new Error('Order not found');
+      err.statusCode = 404;
+      throw err;
+    }
+
+    let mergedStart = order.deliveryWindowStart;
+    let mergedEnd = order.deliveryWindowEnd;
+
+    const $set = {};
+    const $unset = {};
+
+    if (deliveryWindowStart !== undefined) {
+      if (deliveryWindowStart === null || deliveryWindowStart === '') {
+        mergedStart = undefined;
+        $unset.deliveryWindowStart = '';
+      } else {
+        const d = new Date(deliveryWindowStart);
+        if (Number.isNaN(d.getTime())) {
+          const err = new Error('Invalid deliveryWindowStart');
+          err.statusCode = 400;
+          throw err;
+        }
+        mergedStart = d;
+        $set.deliveryWindowStart = d;
+      }
+    }
+    if (deliveryWindowEnd !== undefined) {
+      if (deliveryWindowEnd === null || deliveryWindowEnd === '') {
+        mergedEnd = undefined;
+        $unset.deliveryWindowEnd = '';
+      } else {
+        const d = new Date(deliveryWindowEnd);
+        if (Number.isNaN(d.getTime())) {
+          const err = new Error('Invalid deliveryWindowEnd');
+          err.statusCode = 400;
+          throw err;
+        }
+        mergedEnd = d;
+        $set.deliveryWindowEnd = d;
+      }
+    }
+
+    if (mergedStart && mergedEnd && mergedStart > mergedEnd) {
+      const err = new Error('Delivery start must be before or equal to delivery end');
+      err.statusCode = 400;
+      throw err;
+    }
+
+    const update = {};
+    if (Object.keys($set).length) update.$set = $set;
+    if (Object.keys($unset).length) update.$unset = $unset;
+
+    const updated = await Order.findOneAndUpdate({ orderId: id }, update, {
+      new: true
+    });
+
+    res.json({
+      success: true,
+      message: 'Delivery window updated successfully',
+      data: updated
     });
   } catch (error) {
     next(error);
