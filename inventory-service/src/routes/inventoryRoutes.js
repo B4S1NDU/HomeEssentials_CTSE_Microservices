@@ -48,11 +48,12 @@ router.get('/', inventoryController.getAllInventory);
 // Admin/StoreManager — direct inventory CRUD
 router.post('/', verifyJWT, checkRole(...ADMIN_ROLES), inventoryValidation, inventoryController.createInventory);
 router.put('/:productId', verifyJWT, checkRole(...ADMIN_ROLES), inventoryController.updateInventory);
+router.delete('/:productId', verifyJWT, checkRole(...ADMIN_ROLES), inventoryController.deleteInventory);
 
-// Service-to-service routes (Order Service) — require valid JWT, any authenticated role
-router.post('/reserve', verifyJWT, reservationValidation, inventoryController.reserveStock);
-router.post('/release', verifyJWT, body('orderId').notEmpty(), inventoryController.releaseStock);
-router.post('/deduct', verifyJWT, body('orderId').notEmpty(), inventoryController.deductStock);
-router.post('/check', verifyJWT, checkStockValidation, inventoryController.checkStockAvailability);
+// Service-to-service routes (Order Service) — NO JWT needed for internal communication
+router.post('/reserve', reservationValidation, inventoryController.reserveStock);
+router.post('/release', body('orderId').notEmpty(), inventoryController.releaseStock);
+router.post('/deduct', body('orderId').notEmpty(), inventoryController.deductStock);
+router.post('/check', checkStockValidation, inventoryController.checkStockAvailability);
 
 module.exports = router;

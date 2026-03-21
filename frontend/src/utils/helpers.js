@@ -22,6 +22,38 @@ export const formatDateTime = (dateStr) => {
   });
 };
 
+/** Format address snapshot stored on orders */
+export const formatOrderAddress = (addr) => {
+  if (!addr || typeof addr !== 'object') return '—';
+  const lines = [];
+  if (addr.line1?.trim()) lines.push(addr.line1.trim());
+  if (addr.line2?.trim()) lines.push(addr.line2.trim());
+  const cityPart = [addr.city, addr.district].filter((x) => x && String(x).trim()).join(', ');
+  if (cityPart) lines.push(cityPart);
+  if (addr.postalCode?.trim()) lines.push(addr.postalCode.trim());
+  if (addr.country?.trim()) lines.push(addr.country.trim());
+  return lines.length ? lines.join('\n') : '—';
+};
+
+/** Human-readable delivery window for order list / details */
+export const formatDeliveryRange = (start, end) => {
+  if (!start && !end) return 'Not scheduled';
+  const s = start ? formatDate(start) : '';
+  const e = end ? formatDate(end) : '';
+  if (s && e) return `${s} – ${e}`;
+  if (s) return `From ${s}`;
+  if (e) return `By ${e}`;
+  return '—';
+};
+
+/** For <input type="date" /> from API ISO date */
+export const toDateInputValue = (d) => {
+  if (!d) return '';
+  const x = new Date(d);
+  if (Number.isNaN(x.getTime())) return '';
+  return x.toISOString().slice(0, 10);
+};
+
 export const capitalizeFirst = (str) => {
   if (!str) return '';
   return str.charAt(0).toUpperCase() + str.slice(1);

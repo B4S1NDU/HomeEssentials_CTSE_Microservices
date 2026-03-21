@@ -18,7 +18,7 @@ const navItems = [
   { to: '/products', label: 'Products', icon: Package, always: true },
   { to: '/inventory', label: 'Inventory', icon: Warehouse, roles: ['Admin', 'StoreManager'] },
   { to: '/users', label: 'Users', icon: Users, roles: ['Admin'] },
-  { to: '/orders', label: 'Orders', icon: ShoppingCart, always: true, soon: true },
+  { to: '/orders', label: 'Orders', icon: ShoppingCart, always: true },
   { to: '/payments', label: 'Payments', icon: CreditCard, always: true, soon: true },
   { to: '/notifications', label: 'Notifications', icon: Bell, always: true, soon: true },
 ];

@@ -7,6 +7,8 @@ export const ordersApi = {
   getByUser: (userId) => orderClient.get(`/api/orders/user/${userId}`),
   updateStatus: (id, status) =>
     orderClient.put(`/api/orders/${id}/status`, { status }),
+  updateDelivery: (id, body) =>
+    orderClient.put(`/api/orders/${id}/delivery`, body),
   remove: (id) => orderClient.delete(`/api/orders/${id}`),
   healthCheck: () => orderClient.get("/health"),
 };

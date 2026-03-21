@@ -6,6 +6,7 @@ export const inventoryApi = {
   getByProductId: (productId) => inventoryClient.get(`/api/inventory/${productId}`),
   create: (data) => inventoryClient.post('/api/inventory', data),
   update: (productId, data) => inventoryClient.put(`/api/inventory/${productId}`, data),
+  delete: (productId) => inventoryClient.delete(`/api/inventory/${productId}`),
   checkStock: (data) => inventoryClient.post('/api/inventory/check', data),
   reserveStock: (data) => inventoryClient.post('/api/inventory/reserve', data),
   releaseStock: (data) => inventoryClient.post('/api/inventory/release', data),
