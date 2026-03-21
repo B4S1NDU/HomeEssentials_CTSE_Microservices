@@ -34,9 +34,26 @@ function buildCustomerSnapshot(user) {
   return { customerName, deliveryAddress };
 }
 
+/** Normalize address from order request; returns undefined if nothing provided */
+function normalizeRequestAddress(body) {
+  if (!body || typeof body !== 'object') return undefined;
+  const keys = ['line1', 'line2', 'city', 'district', 'postalCode', 'country'];
+  const hasAny = keys.some((k) => body[k] != null && String(body[k]).trim() !== '');
+  if (!hasAny) return undefined;
+  return {
+    line1: (body.line1 || '').trim(),
+    line2: (body.line2 || '').trim(),
+    city: (body.city || '').trim(),
+    district: (body.district || '').trim(),
+    postalCode: (body.postalCode || '').trim(),
+    country: (body.country || '').trim() || 'Sri Lanka'
+  };
+}
+
 exports.createOrder = async (req, res, next) => {
   try {
-    const { userId, items } = req.body;
+    const { userId, items, deliveryAddress: deliveryAddressBody, customerName: customerNameBody } =
+      req.body;
 
     if (!userId || !Array.isArray(items) || items.length === 0) {
       const error = new Error('userId and at least one item are required');
@@ -47,7 +64,15 @@ exports.createOrder = async (req, res, next) => {
     const authorization = req.headers.authorization;
 
     const userData = await validateUser(userId, authorization);
-    const { customerName, deliveryAddress } = buildCustomerSnapshot(userData);
+    const snapshot = buildCustomerSnapshot(userData);
+
+    let customerName = snapshot.customerName;
+    if (customerNameBody != null && String(customerNameBody).trim() !== '') {
+      customerName = String(customerNameBody).trim();
+    }
+
+    const requestAddress = normalizeRequestAddress(deliveryAddressBody);
+    const deliveryAddress = requestAddress ?? snapshot.deliveryAddress;
 
     const enrichedItems = [];
     const orderId = `ORD-${crypto.randomUUID()}`;

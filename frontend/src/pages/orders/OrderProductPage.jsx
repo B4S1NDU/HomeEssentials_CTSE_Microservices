@@ -8,12 +8,15 @@ import {
   ShoppingCart,
   Sparkles,
   ShieldCheck,
+  MapPin,
+  ChevronDown,
 } from 'lucide-react';
 import { productsApi } from '../../api/productApi';
 import { ordersApi } from '../../api/orderApi';
 import { useAuth } from '../../context/AuthContext';
 import Button from '../../components/common/Button';
 import Badge from '../../components/common/Badge';
+import Input from '../../components/common/Input';
 import Spinner from '../../components/common/Spinner';
 import toast from 'react-hot-toast';
 import { extractErrorMessage, formatCurrency } from '../../utils/helpers';
@@ -32,6 +35,15 @@ export default function OrderProductPage() {
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [submitting, setSubmitting] = useState(false);
+  const [address, setAddress] = useState({
+    line1: '',
+    line2: '',
+    city: '',
+    district: '',
+    postalCode: '',
+    country: 'Sri Lanka',
+  });
+  const [addressExpanded, setAddressExpanded] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -57,6 +69,27 @@ export default function OrderProductPage() {
     };
   }, [productId]);
 
+  useEffect(() => {
+    if (!user?.address) return;
+    setAddress((prev) => ({
+      ...prev,
+      line1: user.address.line1 || prev.line1,
+      line2: user.address.line2 || prev.line2,
+      city: user.address.city || prev.city,
+      district: user.address.district || prev.district,
+      postalCode: user.address.postalCode || prev.postalCode,
+      country: user.address.country || prev.country || 'Sri Lanka',
+    }));
+  }, [user]);
+
+  const setAddr = (field) => (e) =>
+    setAddress((a) => ({ ...a, [field]: e.target.value }));
+
+  const addressSummary =
+    address.line1?.trim() || address.city?.trim()
+      ? [address.line1?.trim(), address.city?.trim()].filter(Boolean).join(', ')
+      : null;
+
   const lineTotal =
     product && typeof product.price === 'number'
       ? product.price * quantity
@@ -73,12 +106,25 @@ export default function OrderProductPage() {
       toast.error('Quantity must be at least 1');
       return;
     }
+    if (!address.line1?.trim() || !address.city?.trim()) {
+      setAddressExpanded(true);
+      toast.error('Please enter delivery address (line 1 and city are required)');
+      return;
+    }
 
     setSubmitting(true);
     try {
       const { data } = await ordersApi.create({
         userId,
         items: [{ productId: product._id, quantity: Number(quantity) }],
+        deliveryAddress: {
+          line1: address.line1.trim(),
+          line2: address.line2.trim(),
+          city: address.city.trim(),
+          district: address.district.trim(),
+          postalCode: address.postalCode.trim(),
+          country: address.country.trim() || 'Sri Lanka',
+        },
       });
       toast.success('Order placed successfully');
       navigate('/orders', { state: { createdOrder: data?.data } });
@@ -251,6 +297,99 @@ export default function OrderProductPage() {
                     >
                       <Plus size={18} className="text-gray-700" />
                     </button>
+                  </div>
+                </div>
+              </div>
+
+              {/* Delivery address — collapsible; saved on the order */}
+              <div className="mb-8 rounded-2xl border border-gray-200 bg-white shadow-sm overflow-hidden">
+                <button
+                  type="button"
+                  id="delivery-address-toggle"
+                  aria-expanded={addressExpanded}
+                  aria-controls="delivery-address-fields"
+                  onClick={() => setAddressExpanded((e) => !e)}
+                  className="w-full flex items-center gap-3 p-4 sm:p-5 text-left hover:bg-slate-50/80 transition-colors"
+                >
+                  <div className="p-2 rounded-xl bg-indigo-50 text-indigo-600 shrink-0">
+                    <MapPin size={18} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h2 className="text-sm font-semibold text-gray-900">Delivery address</h2>
+                    {!addressExpanded && (
+                      <p className="text-xs text-gray-500 mt-0.5 truncate">
+                        {addressSummary
+                          ? `Deliver to: ${addressSummary}`
+                          : 'Tap to add where we should deliver — pre-filled from your profile when available.'}
+                      </p>
+                    )}
+                    {addressExpanded && (
+                      <p className="text-xs text-gray-500 mt-0.5">
+                        Where should we deliver this order? Pre-filled from your profile when available.
+                      </p>
+                    )}
+                  </div>
+                  <ChevronDown
+                    size={20}
+                    className={`shrink-0 text-gray-400 transition-transform duration-200 ${
+                      addressExpanded ? 'rotate-180' : ''
+                    }`}
+                    aria-hidden
+                  />
+                </button>
+                <div
+                  id="delivery-address-fields"
+                  role="region"
+                  aria-labelledby="delivery-address-toggle"
+                  className={`grid transition-[grid-template-rows] duration-200 ease-out ${
+                    addressExpanded ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]'
+                  }`}
+                >
+                  <div className="overflow-hidden min-h-0">
+                    <div className="space-y-3 px-4 sm:px-5 pb-4 sm:pb-5 pt-0 border-t border-gray-100">
+                      <Input
+                        label="Address line 1"
+                        required
+                        value={address.line1}
+                        onChange={setAddr('line1')}
+                        placeholder="Street, building, unit"
+                      />
+                      <Input
+                        label="Address line 2 (optional)"
+                        value={address.line2}
+                        onChange={setAddr('line2')}
+                        placeholder="Apartment, suite, etc."
+                      />
+                      <div className="grid sm:grid-cols-2 gap-3">
+                        <Input
+                          label="City"
+                          required
+                          value={address.city}
+                          onChange={setAddr('city')}
+                          placeholder="City"
+                        />
+                        <Input
+                          label="District"
+                          value={address.district}
+                          onChange={setAddr('district')}
+                          placeholder="District"
+                        />
+                      </div>
+                      <div className="grid sm:grid-cols-2 gap-3">
+                        <Input
+                          label="Postal code"
+                          value={address.postalCode}
+                          onChange={setAddr('postalCode')}
+                          placeholder="Postal code"
+                        />
+                        <Input
+                          label="Country"
+                          value={address.country}
+                          onChange={setAddr('country')}
+                          placeholder="Country"
+                        />
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
