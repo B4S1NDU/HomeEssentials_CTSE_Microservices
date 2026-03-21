@@ -1,7 +1,9 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { inventoryApi } from '../../api/inventoryApi';
+import { productsApi } from '../../api/productApi';
 import Button from '../../components/common/Button';
 import Input from '../../components/common/Input';
+import Select from '../../components/common/Select';
 import { extractErrorMessage } from '../../utils/helpers';
 import toast from 'react-hot-toast';
 
@@ -18,10 +20,60 @@ export default function InventoryForm({ item, onSaved, onCancel }) {
   });
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
+  const [products, setProducts] = useState([]);
+  const [inventoryItems, setInventoryItems] = useState([]);
+  const [availableProducts, setAvailableProducts] = useState([]);
+  const [loadingProducts, setLoadingProducts] = useState(false);
+
+  // Fetch products and inventory on mount
+  useEffect(() => {
+    const fetchData = async () => {
+      setLoadingProducts(true);
+      try {
+        const [productsRes, inventoryRes] = await Promise.all([
+          productsApi.getAll({ limit: 1000 }),
+          inventoryApi.getAll({ limit: 1000 })
+        ]);
+        
+        const productsList = productsRes.data?.data || [];
+        const inventoryList = inventoryRes.data?.data || [];
+        
+        setProducts(productsList);
+        setInventoryItems(inventoryList);
+
+        // Filter products that don't have inventory yet
+        const inventoryProductIds = new Set(inventoryList.map(inv => inv.productId));
+        const available = productsList.filter(p => !inventoryProductIds.has(p._id));
+        setAvailableProducts(available);
+      } catch (err) {
+        console.error('Error fetching products/inventory:', err);
+      } finally {
+        setLoadingProducts(false);
+      }
+    };
+
+    if (!isEdit) {
+      fetchData();
+    }
+  }, [isEdit]);
 
   const set = (field) => (e) => {
     setForm((f) => ({ ...f, [field]: e.target.value }));
     setErrors((er) => ({ ...er, [field]: '' }));
+  };
+
+  const handleProductSelect = (e) => {
+    const productId = e.target.value;
+    const selectedProduct = availableProducts.find(p => p._id === productId);
+    
+    if (selectedProduct) {
+      setForm((f) => ({
+        ...f,
+        productId: selectedProduct._id,
+        productName: selectedProduct.name,
+      }));
+      setErrors((er) => ({ ...er, productId: '', productName: '' }));
+    }
   };
 
   const validate = () => {
@@ -66,22 +118,31 @@ export default function InventoryForm({ item, onSaved, onCancel }) {
     <form onSubmit={handleSubmit} className="space-y-4">
       {!isEdit && (
         <>
-          <Input
-            label="Product ID"
+          <Select
+            label="Select Product"
             value={form.productId}
-            onChange={set('productId')}
+            onChange={handleProductSelect}
             error={errors.productId}
-            placeholder="Product ID"
+            placeholder={loadingProducts ? 'Loading products...' : 'Choose a product without inventory'}
+            options={availableProducts.map(p => ({
+              value: p._id,
+              label: `${p.name} (ID: ${p._id})`
+            }))}
+            disabled={loadingProducts || availableProducts.length === 0}
             required
           />
-          <Input
-            label="Product Name"
-            value={form.productName}
-            onChange={set('productName')}
-            error={errors.productName}
-            placeholder="Product display name"
-            required
-          />
+          {availableProducts.length === 0 && !loadingProducts && (
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <p className="text-sm text-blue-700">All products already have inventory. Create a new product first.</p>
+            </div>
+          )}
+          {form.productId && (
+            <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
+              <p className="text-xs text-green-600 font-medium">Product Selected</p>
+              <p className="text-sm font-semibold text-green-900">{form.productName}</p>
+              <p className="text-xs text-green-700 font-mono">{form.productId}</p>
+            </div>
+          )}
         </>
       )}
       {isEdit && (

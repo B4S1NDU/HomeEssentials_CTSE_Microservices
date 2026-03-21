@@ -141,6 +141,30 @@ exports.updateInventory = async (req, res, next) => {
   }
 };
 
+// @desc    Delete inventory item
+// @route   DELETE /api/inventory/:productId
+// @access  Private (Admin)
+exports.deleteInventory = async (req, res, next) => {
+  try {
+    const inventory = await Inventory.findOneAndDelete({ productId: req.params.productId });
+
+    if (!inventory) {
+      return res.status(404).json({
+        success: false,
+        message: 'Inventory not found'
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Inventory deleted successfully',
+      data: { deletedProductId: req.params.productId }
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
 // @desc    Reserve stock for an order
 // @route   POST /api/inventory/reserve
 // @access  Private (Order Service)
@@ -148,17 +172,23 @@ exports.reserveStock = async (req, res, next) => {
   try {
     const { productId, orderId, quantity } = req.body;
 
+    console.log(`[INVENTORY-RESERVE] 📥 Received reserve request: ${quantity} units of ${productId} for order ${orderId}`);
+
     const inventory = await Inventory.findOne({ productId });
 
     if (!inventory) {
+      console.log(`[INVENTORY-RESERVE] ❌ Product ${productId} not found in inventory`);
       return res.status(404).json({
         success: false,
         message: 'Product not found in inventory'
       });
     }
 
+    console.log(`[INVENTORY-RESERVE] Current state - Total: ${inventory.quantity}, Reserved: ${inventory.reservedQuantity}, Available: ${inventory.availableQuantity}`);
+
     // Check if enough stock available
     if (inventory.availableQuantity < quantity) {
+      console.log(`[INVENTORY-RESERVE] ❌ Insufficient stock: requested ${quantity}, available ${inventory.availableQuantity}`);
       return res.status(400).json({
         success: false,
         message: 'Insufficient stock available',
@@ -181,6 +211,9 @@ exports.reserveStock = async (req, res, next) => {
     // Update inventory
     inventory.reservedQuantity += quantity;
     await inventory.save();
+
+    console.log(`[INVENTORY-RESERVE] ✅ Stock reserved! New state - Total: ${inventory.quantity}, Reserved: ${inventory.reservedQuantity}, Available: ${inventory.availableQuantity}`);
+    console.log(`[INVENTORY-RESERVE] Reservation ID: ${reservation._id} (expires in ${expirationMinutes}min)\n`);
 
     res.status(200).json({
       success: true,
@@ -206,15 +239,16 @@ exports.releaseStock = async (req, res, next) => {
   try {
     const { orderId } = req.body;
 
+    // Find reservations that are either PENDING (not deducted) or CONFIRMED (already deducted, need to reverse)
     const reservations = await Reservation.find({ 
       orderId, 
-      status: 'PENDING' 
+      status: { $in: ['PENDING', 'CONFIRMED'] }
     });
 
     if (reservations.length === 0) {
       return res.status(404).json({
         success: false,
-        message: 'No pending reservations found for this order'
+        message: 'No pending or confirmed reservations found for this order'
       });
     }
 
@@ -222,7 +256,12 @@ exports.releaseStock = async (req, res, next) => {
       const inventory = await Inventory.findOne({ productId: reservation.productId });
       
       if (inventory) {
-        inventory.reservedQuantity -= reservation.quantity;
+        // If reservation was CONFIRMED, we need to add back to quantity as well
+        if (reservation.status === 'CONFIRMED') {
+          inventory.quantity += reservation.quantity;
+        }
+        // Ensure reservedQuantity never goes negative
+        inventory.reservedQuantity = Math.max(0, inventory.reservedQuantity - reservation.quantity);
         await inventory.save();
       }
 
@@ -250,26 +289,34 @@ exports.deductStock = async (req, res, next) => {
   try {
     const { orderId } = req.body;
 
+    // Find reservations with PENDING or CONFIRMED status (idempotent - handle if already deducted)
     const reservations = await Reservation.find({ 
       orderId, 
-      status: 'PENDING' 
+      status: { $in: ['PENDING', 'CONFIRMED'] }
     });
 
     if (reservations.length === 0) {
       return res.status(404).json({
         success: false,
-        message: 'No pending reservations found for this order'
+        message: 'No pending or confirmed reservations found for this order'
       });
     }
 
+    let deductedCount = 0;
+
     for (const reservation of reservations) {
+      // Skip if already deducted
+      if (reservation.status === 'CONFIRMED') {
+        continue;
+      }
+
       const inventory = await Inventory.findOne({ productId: reservation.productId });
       
       if (inventory) {
         // Deduct from total quantity
-        inventory.quantity -= reservation.quantity;
+        inventory.quantity = Math.max(0, inventory.quantity - reservation.quantity);
         // Remove from reserved quantity now that stock has been permanently deducted
-        inventory.reservedQuantity -= reservation.quantity;
+        inventory.reservedQuantity = Math.max(0, inventory.reservedQuantity - reservation.quantity);
         inventory.lastRestocked = Date.now();
         await inventory.save();
         // Stock deduction process complete for product: reservation.productId
@@ -277,6 +324,7 @@ exports.deductStock = async (req, res, next) => {
 
       reservation.status = 'CONFIRMED';
       await reservation.save();
+      deductedCount++;
     }
 
     res.status(200).json({
@@ -284,7 +332,8 @@ exports.deductStock = async (req, res, next) => {
       message: 'Stock deducted successfully',
       data: {
         orderId,
-        deductedItems: reservations.length
+        deductedItems: deductedCount,
+        totalItems: reservations.length
       }
     });
   } catch (error) {

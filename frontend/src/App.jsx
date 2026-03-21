@@ -16,6 +16,7 @@ import InventoryPage from "./pages/inventory/InventoryPage";
 import UsersPage from "./pages/users/UsersPage";
 import ProfilePage from "./pages/users/ProfilePage";
 import OrdersPage from "./pages/orders/OrdersPage";
+import OrderProductPage from "./pages/orders/OrderProductPage";
 import PaymentsPage from "./pages/payments/PaymentsPage";
 import CheckoutPage from "./pages/payments/CheckoutPage";
 import PaymentSuccess from "./pages/payments/PaymentSuccess";
@@ -46,6 +47,7 @@ function App() {
             <Route path="/users" element={<UsersPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/orders" element={<OrdersPage />} />
+            <Route path="/order/product/:productId" element={<OrderProductPage />} />
             <Route path="/payments" element={<PaymentsPage />} />
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/payment-success" element={<PaymentSuccess />} />

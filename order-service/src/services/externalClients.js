@@ -24,58 +24,100 @@ async function validateProduct(productId, authorization) {
 }
 
 async function checkStock(productId, quantity, authorization) {
-  const response = await httpClient.post(
-    `${INVENTORY_SERVICE_BASE_URL}/api/inventory/check`,
-    {
-      productId,
-      quantity
-    },
-    {
-      headers: authorization ? { Authorization: authorization } : undefined
-    }
-  );
-  return response.data;
+  try {
+    console.log(`[CHECK-STOCK] Checking ${quantity} units of ${productId}`);
+    const response = await httpClient.post(
+      `${INVENTORY_SERVICE_BASE_URL}/api/inventory/check`,
+      {
+        productId,
+        quantity
+      },
+      {
+        headers: authorization ? { Authorization: authorization } : undefined
+      }
+    );
+    console.log(`[CHECK-STOCK] ✅ Stock check passed:`, response.data);
+    return response.data;
+  } catch (error) {
+    console.error(`[CHECK-STOCK] ❌ FAILED for ${productId}:`, {
+      status: error.response?.status,
+      message: error.response?.data?.message || error.message
+    });
+    throw error;
+  }
 }
 
 async function reserveStock(productId, orderId, quantity, authorization) {
-  const response = await httpClient.post(
-    `${INVENTORY_SERVICE_BASE_URL}/api/inventory/reserve`,
-    {
-      productId,
-      orderId,
-      quantity
-    },
-    {
-      headers: authorization ? { Authorization: authorization } : undefined
-    }
-  );
-  return response.data;
+  try {
+    console.log(`[RESERVE] Attempting to reserve ${quantity} units of ${productId} for order ${orderId}`);
+    const response = await httpClient.post(
+      `${INVENTORY_SERVICE_BASE_URL}/api/inventory/reserve`,
+      {
+        productId,
+        orderId,
+        quantity
+      },
+      {
+        headers: authorization ? { Authorization: authorization } : undefined
+      }
+    );
+    console.log(`[RESERVE] ✅ Success - Reserved ${quantity} units`, response.data);
+    return response.data;
+  } catch (error) {
+    console.error(`[RESERVE] ❌ FAILED for ${productId}:`, {
+      status: error.response?.status,
+      statusText: error.response?.statusText,
+      message: error.response?.data?.message || error.message,
+      data: error.response?.data
+    });
+    throw error;
+  }
 }
 
 async function deductStock(orderId, authorization) {
-  const response = await httpClient.post(
-    `${INVENTORY_SERVICE_BASE_URL}/api/inventory/deduct`,
-    {
-      orderId
-    },
-    {
-      headers: authorization ? { Authorization: authorization } : undefined
-    }
-  );
-  return response.data;
+  try {
+    console.log(`[DEDUCT] Deducting reserved stock for order ${orderId}`);
+    const response = await httpClient.post(
+      `${INVENTORY_SERVICE_BASE_URL}/api/inventory/deduct`,
+      {
+        orderId
+      },
+      {
+        headers: authorization ? { Authorization: authorization } : undefined
+      }
+    );
+    console.log(`[DEDUCT] ✅ Success - Stock deducted`, response.data);
+    return response.data;
+  } catch (error) {
+    console.error(`[DEDUCT] ❌ FAILED for ${orderId}:`, {
+      status: error.response?.status,
+      message: error.response?.data?.message || error.message
+    });
+    throw error;
+  }
 }
 
 async function releaseStock(orderId, authorization) {
-  const response = await httpClient.post(
-    `${INVENTORY_SERVICE_BASE_URL}/api/inventory/release`,
-    {
-      orderId
-    },
-    {
-      headers: authorization ? { Authorization: authorization } : undefined
-    }
-  );
-  return response.data;
+  try {
+    console.log(`[RELEASE] Releasing reserved stock for order ${orderId}`);
+    const response = await httpClient.post(
+      `${INVENTORY_SERVICE_BASE_URL}/api/inventory/release`,
+      {
+        orderId
+      },
+      {
+        headers: authorization ? { Authorization: authorization } : undefined
+      }
+    );
+    console.log(`[RELEASE] ✅ Success - Stock released`, response.data);
+    return response.data;
+  } catch (error) {
+    console.error(`[RELEASE] ❌ FAILED for ${orderId}:`, {
+      status: error.response?.status,
+      message: error.response?.data?.message || error.message
+    });
+    throw error;
+  }
 }
 
 async function processPayment({ orderId, userId, amount }) {

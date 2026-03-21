@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { Plus, RefreshCw, AlertTriangle, Edit2, Warehouse } from 'lucide-react';
+import { Plus, RefreshCw, AlertTriangle, Edit2, Trash2, Warehouse } from 'lucide-react';
 import { inventoryApi } from '../../api/inventoryApi';
 import { useAuth } from '../../context/AuthContext';
 import Button from '../../components/common/Button';
@@ -56,6 +56,20 @@ export default function InventoryPage() {
   const openEdit = (item) => { setEditItem(item); setModalOpen(true); };
   const closeModal = () => { setModalOpen(false); setEditItem(null); };
   const handleSaved = () => { closeModal(); fetchInventory(); };
+
+  const handleDelete = async (productId, productName) => {
+    if (!window.confirm(`Are you sure you want to delete inventory for "${productName}"? This action cannot be undone.`)) {
+      return;
+    }
+    
+    try {
+      await inventoryApi.delete(productId);
+      toast.success('Inventory item deleted successfully');
+      fetchInventory();
+    } catch (err) {
+      toast.error(extractErrorMessage(err));
+    }
+  };
 
   const columns = [
     {
@@ -114,12 +128,22 @@ export default function InventoryPage() {
       label: 'Actions',
       render: (_, row) =>
         isAdminOrManager() ? (
-          <button
-            onClick={() => openEdit(row)}
-            className="p-1.5 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
-          >
-            <Edit2 size={15} />
-          </button>
+          <div className="flex items-center gap-1">
+            <button
+              onClick={() => openEdit(row)}
+              className="p-1.5 rounded-lg text-gray-400 hover:text-indigo-600 hover:bg-indigo-50 transition-colors"
+              title="Edit inventory"
+            >
+              <Edit2 size={15} />
+            </button>
+            <button
+              onClick={() => handleDelete(row.productId, row.productName)}
+              className="p-1.5 rounded-lg text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+              title="Delete inventory"
+            >
+              <Trash2 size={15} />
+            </button>
+          </div>
         ) : null,
     },
   ];

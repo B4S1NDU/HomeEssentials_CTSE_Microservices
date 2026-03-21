@@ -11,7 +11,8 @@ const connectDB = async () => {
     console.log('✅ Order Service: MongoDB connected');
   } catch (error) {
     console.error('❌ Order Service: MongoDB connection error:', error.message);
-    process.exit(1);
+    console.log('⏳ Retrying MongoDB connection in 5 seconds...');
+    setTimeout(() => connectDB(), 5000);
   }
 };
 

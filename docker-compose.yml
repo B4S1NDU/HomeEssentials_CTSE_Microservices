@@ -76,19 +76,39 @@ services:
       retries: 3
       start_period: 40s
 
-  # Order Service (Placeholder for Student 2)
-  # order-service:
-  #   build:
-  #     context: ./order-service
-  #     dockerfile: Dockerfile
-  #   container_name: order-service
-  #   ports:
-  #     - "3004:3004"
-  #   environment:
-  #     - NODE_ENV=development
-  #     - PORT=3004
-  #   networks:
-  #     - homeessentials-network
+  # Order Service
+  order-service:
+    build:
+      context: ./order-service
+      dockerfile: Dockerfile
+    container_name: order-service
+    ports:
+      - "3004:3004"
+    env_file:
+      - ./order-service/.env
+    environment:
+      - NODE_ENV=development
+      - PORT=3004
+      - ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000
+      - USER_SERVICE_BASE_URL=http://user-service:3001
+      - PRODUCT_SERVICE_BASE_URL=http://product-service:3002
+      - INVENTORY_SERVICE_BASE_URL=http://inventory-service:3003
+      - PAYMENT_SERVICE_BASE_URL=http://payment-service:3005
+      - HTTP_CLIENT_TIMEOUT_MS=5000
+    networks:
+      - homeessentials-network
+    depends_on:
+      - user-service
+      - product-service
+      - inventory-service
+      - payment-service
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3004/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   # Payment Service
   payment-service:
@@ -98,6 +118,8 @@ services:
     container_name: payment-service
     ports:
       - "3005:3005"
+    env_file:
+      - ./payment-service/.env
     environment:
       - NODE_ENV=development
       - PORT=3005

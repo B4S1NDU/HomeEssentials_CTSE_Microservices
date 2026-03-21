@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Plus, Search, Filter, Edit2, Trash2, Package, RefreshCw, Copy, Check } from 'lucide-react';
 import { productsApi } from '../../api/productApi';
 import { useAuth } from '../../context/AuthContext';
@@ -13,6 +14,7 @@ import { extractErrorMessage, formatCurrency, capitalizeFirst } from '../../util
 import { PRODUCT_CATEGORIES } from '../../utils/constants';
 
 export default function ProductsPage() {
+  const navigate = useNavigate();
   const { isAdminOrManager } = useAuth();
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -92,19 +94,25 @@ export default function ProductsPage() {
       key: 'name',
       label: 'Product',
       render: (val, row) => (
-        <div className="flex items-center gap-3">
+        <button
+          type="button"
+          onClick={() => navigate(`/order/product/${row._id}`)}
+          className="flex items-center gap-3 text-left w-full rounded-lg -m-1 p-1 hover:bg-indigo-50/80 transition-colors group"
+          title="Open order flow for this product"
+        >
           {row.imageUrl ? (
             <img src={row.imageUrl} alt={val} className="w-9 h-9 rounded-lg object-cover bg-gray-100" />
           ) : (
-            <div className="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-lg bg-indigo-50 flex items-center justify-center group-hover:bg-indigo-100">
               <Package size={16} className="text-indigo-400" />
             </div>
           )}
-          <div>
-            <p className="font-medium text-gray-900 text-sm">{val}</p>
+          <div className="min-w-0">
+            <p className="font-medium text-gray-900 text-sm group-hover:text-indigo-700">{val}</p>
             {row.brand && <p className="text-xs text-gray-400">{row.brand}</p>}
+            <p className="text-[10px] text-indigo-500 mt-0.5">Click to order</p>
           </div>
-        </div>
+        </button>
       ),
     },
     {
