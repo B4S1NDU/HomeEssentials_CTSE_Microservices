@@ -34,7 +34,7 @@ export default function Sidebar({ collapsed, onToggle }) {
 
   // Dynamic portal branding
   const portalName = user?.role === 'admin' ? 'Admin Portal' : 'HomeEssentials+';
-  const portalSubtext = user?.role === 'admin' ? 'Admin System' : 'Customer Portal';
+  const portalSubtext = user?.role === 'Admin' ? 'Admin System' : 'Customer Portal';
 
   return (
     <aside

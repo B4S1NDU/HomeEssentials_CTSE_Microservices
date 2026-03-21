@@ -30,8 +30,8 @@ export default function Header({ onMobileMenuToggle }) {
   };
 
   // Portal branding based on user role
-  const portalName = user?.role === 'admin' ? 'Admin Portal' : 'HomeEssentials+ Customer Portal';
-  const portalSubtitle = user?.role === 'admin' ? 'Admin Management System' : 'Your household essentials marketplace';
+  const portalName = user?.role === 'Admin' ? 'Admin Portal' : 'HomeEssentials+ Customer Portal';
+  const portalSubtitle = user?.role === 'Admin' ? 'Admin Management System' : 'Your household essentials marketplace';
 
   return (
     <header className="bg-white border-b border-gray-200 px-4 lg:px-6 py-4 flex items-center justify-between gap-4">
