@@ -7,7 +7,7 @@ const PORT = process.env.PORT || 3002;
 // Connect to MongoDB
 connectDB();
 
-// Start server
+// Start to server
 const server = app.listen(PORT, () => {
   console.log(`🚀 Product Service running on port ${PORT}`);
   console.log(`📚 API Documentation: http://localhost:${PORT}/api-docs`);

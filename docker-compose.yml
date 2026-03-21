@@ -90,19 +90,20 @@ services:
   #   networks:
   #     - homeessentials-network
 
-  # Payment Service (Placeholder for Student 3)
-  # payment-service:
-  #   build:
-  #     context: ./payment-service
-  #     dockerfile: Dockerfile
-  #   container_name: payment-service
-  #   ports:
-  #     - "3005:3005"
-  #   environment:
-  #     - NODE_ENV=development
-  #     - PORT=3005
-  #   networks:
-  #     - homeessentials-network
+  # Payment Service
+  payment-service:
+    build:
+      context: ./payment-service
+      dockerfile: Dockerfile
+    container_name: payment-service
+    ports:
+      - "3005:3005"
+    environment:
+      - NODE_ENV=development
+      - PORT=3005
+    networks:
+      - homeessentials-network
+    restart: unless-stopped
 
   # Notification Service (Placeholder for Student 4)
   # notification-service:
