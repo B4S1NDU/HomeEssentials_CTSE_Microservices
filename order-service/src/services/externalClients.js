@@ -146,11 +146,10 @@ async function getWarehouseById(warehouseId, authorization) {
 
 async function getUserById(userId, authorization) {
   const serviceToken = process.env.USER_SERVICE_INTERNAL_TOKEN;
-  const effectiveAuthorization = serviceToken
-    ? `Bearer ${serviceToken}`
-    : authorization;
+  const effectiveAuthorization = serviceToken ? `Bearer ${serviceToken}` : undefined;
 
-  const response = await httpClient.get(`${USER_SERVICE_BASE_URL}/api/users/${userId}`, {
+  // Use internal endpoint that doesn't require authentication
+  const response = await httpClient.get(`${USER_SERVICE_BASE_URL}/api/users/internal/${userId}`, {
     headers: effectiveAuthorization ? { Authorization: effectiveAuthorization } : undefined
   });
   return response.data?.data || response.data;
