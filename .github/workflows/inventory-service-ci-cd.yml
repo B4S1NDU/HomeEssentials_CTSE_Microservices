@@ -2,7 +2,7 @@ name: Inventory Service CI/CD
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main ]
     paths:
       - 'inventory-service/**'
   pull_request:

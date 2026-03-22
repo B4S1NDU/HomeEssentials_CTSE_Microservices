@@ -2,7 +2,7 @@ name: Product Service CI/CD
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main ]
     paths:
       - 'product-service/**'
   pull_request:

@@ -2,7 +2,7 @@ name: Order Service CI/CD
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main ]
     paths:
       - 'order-service/**'
   pull_request:

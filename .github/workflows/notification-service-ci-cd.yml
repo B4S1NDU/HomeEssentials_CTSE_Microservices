@@ -2,7 +2,7 @@ name: Notification Service CI/CD
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main ]
     paths:
       - 'notification-service/**'
   pull_request:

@@ -2,7 +2,7 @@ name: User Service CI/CD
 
 on:
   push:
-    branches: [ main, develop ]
+    branches: [ main ]
     paths:
       - 'user-service/**'
   pull_request:
