@@ -53,11 +53,7 @@ jobs:
       - name: Run Snyk Security Scan
         uses: snyk/actions/node@master
         continue-on-error: true
-        permissions:
-  id-token: write
-  contents: read
-
-env:
+        env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
           args: --severity-threshold=high --file=inventory-service/package.json
@@ -82,11 +78,7 @@ env:
 
       - name: Build and push Docker image to ACR
         id: build-image
-        permissions:
-  id-token: write
-  contents: read
-
-env:
+        env:
           ACR_LOGIN_SERVER: ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}
           IMAGE_TAG: ${{ github.sha }}
         run: |
@@ -138,3 +130,4 @@ env:
           imageToDeploy: ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/${{ env.ACR_REPOSITORY }}:${{ github.sha }}
           resourceGroup: ${{ env.RESOURCE_GROUP }}
           containerAppName: ${{ env.CONTAINER_APP_NAME }}
+
