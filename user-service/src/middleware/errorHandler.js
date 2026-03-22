@@ -4,11 +4,7 @@ const { errorResponse } = require('../utils/response');
  * Centralized error handling middleware
  */
 const errorHandler = (err, _req, res, _next) => {
-  if (err.name === 'TokenExpiredError' || err.name === 'JsonWebTokenError') {
-    console.warn('Auth error:', err.name, '-', err.message);
-  } else {
-    console.error('Error:', err);
-  }
+  console.error('Error:', err);
 
   // Mongoose duplicate key error
   if (err.code === 11000) {

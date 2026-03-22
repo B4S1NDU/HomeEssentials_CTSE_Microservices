@@ -12,7 +12,8 @@ const getUserById = async (req, res, next) => {
     const authUser = req.user;
 
     // Check authorization: users can only view their own profile, admins can view anyone
-    if (authUser.role !== 'Admin' && authUser.sub !== id) {
+    // Skip for internal service-to-service calls (when authUser is undefined)
+    if (authUser && authUser.role !== 'Admin' && authUser.sub !== id) {
       const error = new Error('Access denied. You can only view your own profile');
       error.statusCode = 403;
       error.code = 'FORBIDDEN';

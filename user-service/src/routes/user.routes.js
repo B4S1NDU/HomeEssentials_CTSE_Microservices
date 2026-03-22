@@ -11,6 +11,12 @@ const router = express.Router();
 router.get('/', verifyJWT, checkRole('Admin'), userController.getUsers);
 
 /**
+ * GET /users/internal/:id
+ * Get user by ID for internal service-to-service calls (no auth required)
+ */
+router.get('/internal/:id', userController.getUserById);
+
+/**
  * GET /users/:id
  * Get user by ID (Auth required - users can view own profile, admins can view any)
  */
