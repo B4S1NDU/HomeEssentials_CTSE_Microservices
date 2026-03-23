@@ -9,7 +9,7 @@ const connectDB = async () => {
     };
 
     await mongoose.connect(process.env.MONGODB_URI, options);
-//  check connection state
+    //  Check connection state
     console.log('✅ MongoDB connected successfully');
     console.log(`📦 Database: ${mongoose.connection.name}`);
 
@@ -28,4 +28,5 @@ const connectDB = async () => {
 };
 
 module.exports = connectDB;
+
 // Triggering OIDC deployment pipeline to Azure Container Apps
