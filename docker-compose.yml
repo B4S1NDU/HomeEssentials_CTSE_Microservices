@@ -15,6 +15,18 @@ services:
       - NODE_ENV=development
       - PORT=3002
       - ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000,http://localhost:3004
+      - USER_SERVICE_URL=http://user-service:3001
+      - USER_SERVICE_BASE_URL=http://user-service:3001
+      - PRODUCT_SERVICE_URL=http://product-service:3002
+      - PRODUCT_SERVICE_BASE_URL=http://product-service:3002
+      - INVENTORY_SERVICE_URL=http://inventory-service:3003
+      - INVENTORY_SERVICE_BASE_URL=http://inventory-service:3003
+      - ORDER_SERVICE_URL=http://order-service:3004
+      - ORDER_SERVICE_BASE_URL=http://order-service:3004
+      - PAYMENT_SERVICE_URL=http://payment-service:3005
+      - PAYMENT_SERVICE_BASE_URL=http://payment-service:3005
+      - NOTIFICATION_SERVICE_URL=http://notification-service:3006
+      - NOTIFICATION_SERVICE_BASE_URL=http://notification-service:3006
     networks:
       - homeessentials-network
     restart: unless-stopped
@@ -39,11 +51,23 @@ services:
       - NODE_ENV=development
       - PORT=3003
       - ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000,http://localhost:3004
+      - USER_SERVICE_URL=http://user-service:3001
+      - USER_SERVICE_BASE_URL=http://user-service:3001
       - PRODUCT_SERVICE_URL=http://product-service:3002
+      - PRODUCT_SERVICE_BASE_URL=http://product-service:3002
+      - INVENTORY_SERVICE_URL=http://inventory-service:3003
+      - INVENTORY_SERVICE_BASE_URL=http://inventory-service:3003
+      - ORDER_SERVICE_URL=http://order-service:3004
+      - ORDER_SERVICE_BASE_URL=http://order-service:3004
+      - PAYMENT_SERVICE_URL=http://payment-service:3005
+      - PAYMENT_SERVICE_BASE_URL=http://payment-service:3005
+      - NOTIFICATION_SERVICE_URL=http://notification-service:3006
+      - NOTIFICATION_SERVICE_BASE_URL=http://notification-service:3006
     networks:
       - homeessentials-network
     depends_on:
       - product-service
+      - notification-service
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:3003/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
@@ -66,6 +90,18 @@ services:
       - NODE_ENV=development
       - PORT=3001
       - ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000,http://localhost:3004
+      - USER_SERVICE_URL=http://user-service:3001
+      - USER_SERVICE_BASE_URL=http://user-service:3001
+      - PRODUCT_SERVICE_URL=http://product-service:3002
+      - PRODUCT_SERVICE_BASE_URL=http://product-service:3002
+      - INVENTORY_SERVICE_URL=http://inventory-service:3003
+      - INVENTORY_SERVICE_BASE_URL=http://inventory-service:3003
+      - ORDER_SERVICE_URL=http://order-service:3004
+      - ORDER_SERVICE_BASE_URL=http://order-service:3004
+      - PAYMENT_SERVICE_URL=http://payment-service:3005
+      - PAYMENT_SERVICE_BASE_URL=http://payment-service:3005
+      - NOTIFICATION_SERVICE_URL=http://notification-service:3006
+      - NOTIFICATION_SERVICE_BASE_URL=http://notification-service:3006
     networks:
       - homeessentials-network
     restart: unless-stopped
@@ -90,10 +126,18 @@ services:
       - NODE_ENV=development
       - PORT=3004
       - ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000
+      - USER_SERVICE_URL=http://user-service:3001
       - USER_SERVICE_BASE_URL=http://user-service:3001
+      - PRODUCT_SERVICE_URL=http://product-service:3002
       - PRODUCT_SERVICE_BASE_URL=http://product-service:3002
+      - INVENTORY_SERVICE_URL=http://inventory-service:3003
       - INVENTORY_SERVICE_BASE_URL=http://inventory-service:3003
+      - ORDER_SERVICE_URL=http://order-service:3004
+      - ORDER_SERVICE_BASE_URL=http://order-service:3004
+      - PAYMENT_SERVICE_URL=http://payment-service:3005
       - PAYMENT_SERVICE_BASE_URL=http://payment-service:3005
+      - NOTIFICATION_SERVICE_URL=http://notification-service:3006
+      - NOTIFICATION_SERVICE_BASE_URL=http://notification-service:3006
       - HTTP_CLIENT_TIMEOUT_MS=5000
     networks:
       - homeessentials-network
@@ -102,6 +146,7 @@ services:
       - product-service
       - inventory-service
       - payment-service
+      - notification-service
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "node", "-e", "require('http').get('http://localhost:3004/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
@@ -123,6 +168,18 @@ services:
     environment:
       - NODE_ENV=development
       - PORT=3005
+      - USER_SERVICE_URL=http://user-service:3001
+      - USER_SERVICE_BASE_URL=http://user-service:3001
+      - PRODUCT_SERVICE_URL=http://product-service:3002
+      - PRODUCT_SERVICE_BASE_URL=http://product-service:3002
+      - INVENTORY_SERVICE_URL=http://inventory-service:3003
+      - INVENTORY_SERVICE_BASE_URL=http://inventory-service:3003
+      - ORDER_SERVICE_URL=http://order-service:3004
+      - ORDER_SERVICE_BASE_URL=http://order-service:3004
+      - PAYMENT_SERVICE_URL=http://payment-service:3005
+      - PAYMENT_SERVICE_BASE_URL=http://payment-service:3005
+      - NOTIFICATION_SERVICE_URL=http://notification-service:3006
+      - NOTIFICATION_SERVICE_BASE_URL=http://notification-service:3006
     networks:
       - homeessentials-network
     restart: unless-stopped
@@ -141,6 +198,18 @@ services:
       - NODE_ENV=development
       - PORT=3006
       - ALLOWED_ORIGINS=http://localhost:5173,http://localhost:3000,http://localhost:3004
+      - USER_SERVICE_URL=http://user-service:3001
+      - USER_SERVICE_BASE_URL=http://user-service:3001
+      - PRODUCT_SERVICE_URL=http://product-service:3002
+      - PRODUCT_SERVICE_BASE_URL=http://product-service:3002
+      - INVENTORY_SERVICE_URL=http://inventory-service:3003
+      - INVENTORY_SERVICE_BASE_URL=http://inventory-service:3003
+      - ORDER_SERVICE_URL=http://order-service:3004
+      - ORDER_SERVICE_BASE_URL=http://order-service:3004
+      - PAYMENT_SERVICE_URL=http://payment-service:3005
+      - PAYMENT_SERVICE_BASE_URL=http://payment-service:3005
+      - NOTIFICATION_SERVICE_URL=http://notification-service:3006
+      - NOTIFICATION_SERVICE_BASE_URL=http://notification-service:3006
     networks:
       - homeessentials-network
     restart: unless-stopped
