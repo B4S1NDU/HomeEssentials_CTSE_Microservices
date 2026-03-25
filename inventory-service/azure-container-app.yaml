@@ -22,7 +22,7 @@ spec:
           - name: PORT
             value: '3003'
           - name: PRODUCT_SERVICE_URL
-            value: http://product-service.homeessentials.local:3002
+            value: http://product-service.homeessentials.local:3002 # NOSONAR - Internal service communication in private Azure Container Apps network
           - name: MONGODB_URI
             secretRef: mongodb-uri
         livenessProbe:
