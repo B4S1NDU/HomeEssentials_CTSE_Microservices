@@ -7,7 +7,7 @@ const connectDB = async () => {
     await mongoose.connect(mongoUri, {
       // modern mongoose uses URI only; options kept minimal
     });
-//  check connection state
+   //  Check connection state
     console.log('✅ Order Service: MongoDB connected');
   } catch (error) {
     console.error('❌ Order Service: MongoDB connection error:', error.message);
