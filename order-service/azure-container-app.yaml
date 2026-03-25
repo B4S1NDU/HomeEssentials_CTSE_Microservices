@@ -1,0 +1,54 @@
+apiVersion: containerapp.io/v1
+kind: ContainerApp
+metadata:
+  name: order-service
+  resourceGroup: homeessentials-rg
+  location: eastus
+spec:
+  environment: homeessentials
+  template:
+    containers:
+      - name: order-service
+        image: homeessentialsacr.azurecr.io/homeessentials-order-service:latest
+        resources:
+          cpu: 0.5
+          memory: 1Gi
+        ports:
+          - containerPort: 3004
+            protocol: tcp
+        env:
+          - name: NODE_ENV
+            value: production
+          - name: PORT
+            value: '3004'
+          - name: PRODUCT_SERVICE_URL
+            value: http://product-service.homeessentials.local:3002
+          - name: INVENTORY_SERVICE_URL
+            value: http://inventory-service.homeessentials.local:3003
+          - name: PAYMENT_SERVICE_URL
+            value: http://payment-service.homeessentials.local:3005
+          - name: MONGODB_URI
+            secretRef: mongodb-uri
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3004
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3004
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+    scale:
+      minReplicas: 1
+      maxReplicas: 3
+      rules:
+        - name: http-requests
+          custom:
+            rule: http.requests.total

@@ -1,0 +1,50 @@
+apiVersion: containerapp.io/v1
+kind: ContainerApp
+metadata:
+  name: payment-service
+  resourceGroup: homeessentials-rg
+  location: eastus
+spec:
+  environment: homeessentials
+  template:
+    containers:
+      - name: payment-service
+        image: homeessentialsacr.azurecr.io/homeessentials-payment-service:latest
+        resources:
+          cpu: 0.5
+          memory: 1Gi
+        ports:
+          - containerPort: 3005
+            protocol: tcp
+        env:
+          - name: NODE_ENV
+            value: production
+          - name: PORT
+            value: '3005'
+          - name: STRIPE_SECRET_KEY
+            secretRef: stripe-secret-key
+          - name: MONGODB_URI
+            secretRef: mongodb-uri
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 3005
+          initialDelaySeconds: 60
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 3005
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+    scale:
+      minReplicas: 1
+      maxReplicas: 3
+      rules:
+        - name: http-requests
+          custom:
+            rule: http.requests.total
