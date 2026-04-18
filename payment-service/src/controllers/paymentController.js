@@ -109,9 +109,12 @@ const verifyPayment = async (req, res, next) => {
         type: "PAYMENT_SUCCESS",
       });
 
-      const redirectUrl =
-        process.env.SUCCESS_URL || "http://frontend-service/payment-success";
-      return res.redirect(302, redirectUrl);
+      // Return the json directly rather than using res.redirect which breaks API calls via Axios
+      return res.status(200).json({
+        success: true,
+        status: "succeeded",
+        payment: existing || payment,
+      });
     } else {
       if (existing) {
         existing.paymentStatus = "failed";
@@ -126,9 +129,7 @@ const verifyPayment = async (req, res, next) => {
           type: "PAYMENT_FAILED",
         });
       }
-      const redirectUrl =
-        process.env.CANCEL_URL || "http://frontend-service/payment-failed";
-      return res.redirect(302, redirectUrl);
+      return res.status(400).json({ success: false, status: status });
     }
   } catch (err) {
     next(err);
