@@ -59,7 +59,7 @@ const createPayment = async (req, res, next) => {
   }
 };
 
-// Verify payment status on Stripe and update MongoDB
+// Verify Payment status on Stripe and update MongoDB
 const verifyPayment = async (req, res, next) => {
   try {
     const { paymentIntentId } = req.body;
