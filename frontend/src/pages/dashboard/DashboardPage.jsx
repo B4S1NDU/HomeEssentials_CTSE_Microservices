@@ -165,88 +165,94 @@ export default function DashboardPage() {
       </div>
 
       {/* Stats grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className={`grid ${isAdmin() ? 'grid-cols-2 lg:grid-cols-4' : 'grid-cols-2'} gap-4`}>
         <StatCard
           title="Total Products"
           value={stats?.totalProducts}
           icon={Package}
           color="indigo"
         />
-        <StatCard
-          title="Inventory Items"
-          value={stats?.totalInventoryItems}
-          icon={Warehouse}
-          color="blue"
-        />
-        <StatCard
-          title="Low Stock Items"
-          value={stats?.lowStockCount}
-          icon={AlertTriangle}
-          color="yellow"
-        />
-        <StatCard
-          title="Out of Stock"
-          value={stats?.outOfStock}
-          icon={XCircle}
-          color="red"
-        />
-        {isAdmin() && stats?.totalUsers !== null && (
-          <StatCard
-            title="Registered Users"
-            value={stats?.totalUsers}
-            icon={Users}
-            color="green"
-          />
+        {isAdmin() && (
+          <>
+            <StatCard
+              title="Inventory Items"
+              value={stats?.totalInventoryItems}
+              icon={Warehouse}
+              color="blue"
+            />
+            <StatCard
+              title="Low Stock Items"
+              value={stats?.lowStockCount}
+              icon={AlertTriangle}
+              color="yellow"
+            />
+            <StatCard
+              title="Out of Stock"
+              value={stats?.outOfStock}
+              icon={XCircle}
+              color="red"
+            />
+            {stats?.totalUsers !== null && (
+              <StatCard
+                title="Registered Users"
+                value={stats?.totalUsers}
+                icon={Users}
+                color="green"
+              />
+            )}
+          </>
         )}
       </div>
 
       {/* Two-column section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <div className={`grid ${isAdmin() ? 'grid-cols-1 lg:grid-cols-2' : 'grid-cols-1'} gap-5`}>
         {/* Low stock list */}
-        <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
-          <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-            <div className="flex items-center gap-2">
-              <AlertTriangle size={16} className="text-yellow-500" />
-              <h3 className="font-semibold text-gray-900 text-sm">
-                Low Stock Alerts
-              </h3>
+        {isAdmin() && (
+          <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+              <div className="flex items-center gap-2">
+                <AlertTriangle size={16} className="text-yellow-500" />
+                <h3 className="font-semibold text-gray-900 text-sm">
+                  Low Stock Alerts
+                </h3>
+              </div>
+              <Link
+                to="/inventory?status=LOW_STOCK"
+                className="text-xs text-indigo-600 flex items-center gap-1 hover:underline"
+              >
+                View all <ArrowRight size={12} />
+              </Link>
             </div>
-            <Link
-              to="/inventory?status=LOW_STOCK"
-              className="text-xs text-indigo-600 flex items-center gap-1 hover:underline"
-            >
-              View all <ArrowRight size={12} />
-            </Link>
-          </div>
-          {lowStock.length === 0 ? (
-            <div className="flex flex-col items-center py-10 text-gray-400">
-              <CheckCircle size={32} className="text-green-400 mb-2" />
-              <p className="text-sm">All items are well-stocked!</p>
-            </div>
-          ) : (
-            <div className="divide-y divide-gray-50">
-              {lowStock.map((item) => (
-                <div
-                  key={item._id}
-                  className="flex items-center justify-between px-5 py-3"
-                >
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">
-                      {item.productName}
-                    </p>
-                    <p className="text-xs text-gray-400">
-                      Available: {item.availableQuantity} · Threshold:{" "}
-                      {item.lowStockThreshold}
-                    </p>
+            {lowStock.length === 0 ? (
+              <div className="flex flex-col items-center py-10 text-gray-400">
+                <CheckCircle size={32} className="text-green-400 mb-2" />
+                <p className="text-sm">All items are well-stocked!</p>
+              </div>
+            ) : (
+              <div className="divide-y divide-gray-50">
+                {lowStock.map((item) => (
+                  <div
+                    key={item._id}
+                    className="flex items-center justify-between px-5 py-3"
+                  >
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">
+                        {item.productName}
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        Available: {item.availableQuantity} · Threshold:{" "}
+                        {item.lowStockThreshold}
+                      </p>
+                    </div>
+                    <Badge className={getStockStatusColor(item.stockStatus)}>
+                      {item.stockStatus?.replace(/_/g, " ")}
+                    </Badge>
                   </div>
-                  <Badge className={getStockStatusColor(item.stockStatus)}>
-                    {item.stockStatus?.replace(/_/g, " ")}
-                  </Badge>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Recent products */}
         <div className="bg-white rounded-2xl border border-gray-200 overflow-hidden">

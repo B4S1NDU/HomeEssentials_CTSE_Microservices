@@ -19,7 +19,6 @@ const navItems = [
   { to: '/inventory', label: 'Inventory', icon: Warehouse, roles: ['Admin', 'StoreManager'] },
   { to: '/users', label: 'Users', icon: Users, roles: ['Admin'] },
   { to: '/orders', label: 'Orders', icon: ShoppingCart, always: true },
-  { to: '/payments', label: 'Payments', icon: CreditCard, always: true, soon: true },
 ];
 
 export default function Sidebar({ collapsed, onToggle }) {
