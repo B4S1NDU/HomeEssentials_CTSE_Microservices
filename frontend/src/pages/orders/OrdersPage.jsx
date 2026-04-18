@@ -18,6 +18,7 @@ import {
 import { ordersApi } from "../../api/orderApi";
 import { useAuth } from "../../context/AuthContext";
 import toast from "react-hot-toast";
+import { useNavigate } from "react-router-dom";
 import {
   extractErrorMessage,
   formatCurrency,
@@ -32,6 +33,7 @@ import Table from "../../components/common/Table";
 import Modal from "../../components/common/Modal";
 
 export default function OrdersPage() {
+  const navigate = useNavigate();
   const { user, isAdminOrManager } = useAuth();
   const isStaff = isAdminOrManager();
   const resolvedUserId = user?.id ?? user?._id ?? "";
@@ -164,8 +166,34 @@ export default function OrdersPage() {
         label: "Total",
         render: (v) => <span className="font-semibold text-gray-900">Rs. {v ?? 0}</span>,
       },
+      ...(!isStaff ? [{
+        key: "actions",
+        label: "",
+        render: (_v, row) => (
+          row.status?.toUpperCase() === "PENDING" ? (
+            <div onClick={(e) => e.stopPropagation()}>
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => {
+                  navigate("/checkout", {
+                    state: {
+                      orderId: row.orderId,
+                      amount: row.totalAmount,
+                      items: row.items,
+                      userId: row.userId,
+                    },
+                  });
+                }}
+              >
+                Pay Now
+              </Button>
+            </div>
+          ) : null
+        ),
+      }] : []),
     ],
-    [isStaff]
+    [isStaff, navigate]
   );
 
   const filteredOrders = useMemo(() => {
@@ -434,6 +462,25 @@ export default function OrdersPage() {
                           >
                             Delete
                           </Button>
+                          {row.status?.toUpperCase() === "PENDING" && (
+                            <Button
+                              variant="primary"
+                              size="sm"
+                              className="!px-2 !py-1 text-xs"
+                              onClick={() => {
+                                navigate("/checkout", {
+                                  state: {
+                                    orderId: row.orderId,
+                                    amount: row.totalAmount,
+                                    items: row.items,
+                                    userId: row.userId,
+                                  },
+                                });
+                              }}
+                            >
+                              Pay Now
+                            </Button>
+                          )}
                         </div>
                       ),
                     },
@@ -702,7 +749,7 @@ export default function OrdersPage() {
             <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-indigo-600 via-indigo-700 to-violet-700 text-white shadow-lg shadow-indigo-900/20 ring-1 ring-white/10">
               <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_100%_0%,white_0%,transparent_50%)]" />
               <div className="relative flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-5 py-4 sm:px-6 sm:py-5">
-                <div className="flex items-center gap-3">
+                <div flex className="items-center gap-3 flex">
                   <span className="p-2.5 rounded-xl bg-white/15 ring-1 ring-white/20">
                     <Receipt className="w-6 h-6" strokeWidth={1.75} />
                   </span>
@@ -718,6 +765,24 @@ export default function OrdersPage() {
             </div>
 
             <div className="flex justify-end pt-1 gap-2">
+              {detailOrder.status?.toUpperCase() === "PENDING" && (
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => {
+                    navigate("/checkout", {
+                      state: {
+                        orderId: detailOrder.orderId,
+                        amount: detailOrder.totalAmount,
+                        items: detailOrder.items,
+                        userId: detailOrder.userId,
+                      },
+                    });
+                  }}
+                >
+                  Pay Now
+                </Button>
+              )}
               <Button
                 variant="secondary"
                 size="sm"

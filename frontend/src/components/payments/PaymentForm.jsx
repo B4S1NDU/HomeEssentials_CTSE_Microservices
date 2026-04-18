@@ -4,6 +4,7 @@ import { Elements, useStripe, useElements } from "@stripe/react-stripe-js";
 import StripeCardForm from "./StripeCardForm";
 import paymentService from "../../services/paymentService";
 import { useNavigate } from "react-router-dom";
+import { ordersApi } from "../../api/orderApi";
 
 const PaymentFormInner = ({
   clientSecret,
@@ -55,6 +56,14 @@ const PaymentFormInner = ({
           orderId,
           paymentIntentId: res.paymentIntent.id,
         });
+
+        // Update order status to CONFIRMED
+        try {
+          await ordersApi.updateStatus(orderId, "CONFIRMED");
+        } catch (updateErr) {
+          console.error("Failed to update order status to CONFIRMED", updateErr);
+        }
+
         navigate("/payment-success", {
           state: { orderId, paymentIntentId: res.paymentIntent.id },
         });
@@ -103,11 +112,17 @@ const PaymentFormInner = ({
             placeholder="Postal Code"
             className="mt-1 w-full border rounded-md p-2"
           />
-          <input
+          <select
             name="country"
-            placeholder="Country"
-            className="mt-1 w-full border rounded-md p-2"
-          />
+            className="mt-1 w-full border rounded-md p-2 text-gray-700 bg-white"
+            defaultValue="LK"
+          >
+            <option value="LK">Sri Lanka</option>
+            <option value="US">United States</option>
+            <option value="GB">United Kingdom</option>
+            <option value="AU">Australia</option>
+            <option value="IN">India</option>
+          </select>
         </div>
 
         {error && <div className="text-sm text-red-600">{error}</div>}
@@ -118,7 +133,7 @@ const PaymentFormInner = ({
             disabled={loading}
             className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700 disabled:opacity-60"
           >
-            {loading ? "Processing..." : `Pay $${(amount / 100).toFixed(2)}`}
+            {loading ? "Processing..." : `Pay LKR ${(amount / 100).toFixed(2)}`}
           </button>
           <button
             type="button"
@@ -133,7 +148,7 @@ const PaymentFormInner = ({
   );
 };
 
-const PaymentForm = ({ orderId, userId, amount, currency = "usd" }) => {
+const PaymentForm = ({ orderId, userId, amount, currency = "lkr" }) => {
   const [clientSecret, setClientSecret] = React.useState(null);
 
   React.useEffect(() => {
@@ -164,7 +179,7 @@ const PaymentForm = ({ orderId, userId, amount, currency = "usd" }) => {
   }
 
   const stripePromise = loadStripe(
-    import.meta.env.VITE_STRIPE_PUBLIC_KEY || window.STRIPE_PUBLIC_KEY || "",
+    import.meta.env.VITE_STRIPE_PUBLIC_KEY || window.STRIPE_PUBLIC_KEY || "pk_test_51T5gneBuc6RGh4rzvYWQh0mZ3cBI1rBzpfPlUd6kAqUJY4dDPGUOMCcQlqGFn12B0g0JxRSuvgq8g2hn4Ca1lKhi00pYs2ZvpK"
   );
 
   return (

@@ -1,47 +1,37 @@
 import React from "react";
+import { formatCurrency } from "../../utils/helpers";
+import { Package } from "lucide-react";
 
-const OrderSummary = ({ items = [], shipping = 0, tax = 0 }) => {
-  const subtotal = items.reduce((s, it) => s + it.price * it.quantity, 0);
-  const total = subtotal + shipping + tax;
-
+const OrderSummary = ({ items = [], total = 0 }) => {
   return (
-    <aside className="bg-white rounded-xl shadow-sm p-4 w-full md:w-96">
-      <h3 className="text-lg font-semibold mb-4">Order Summary</h3>
-      <div className="space-y-3 max-h-64 overflow-auto">
-        {items.map((it) => (
-          <div key={it.id} className="flex items-center gap-3">
-            <img
-              src={it.image}
-              alt={it.name}
-              className="w-14 h-14 object-cover rounded-md"
-            />
-            <div className="flex-1">
-              <div className="text-sm font-medium text-gray-800">{it.name}</div>
-              <div className="text-xs text-gray-500">Qty {it.quantity}</div>
+    <aside className="bg-white rounded-xl shadow-sm border border-gray-100 p-6 w-full lg:w-80 xl:w-96">
+      <h3 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
+        <Package className="w-5 h-5 text-indigo-600" />
+        Order Summary
+      </h3>
+      <div className="space-y-4 max-h-72 overflow-y-auto pr-2">
+        {items.map((it, idx) => (
+          <div key={it.productId || idx} className="flex md:items-start gap-3">
+            <div className="flex-1 min-w-0">
+              <div className="text-sm font-medium text-gray-800 line-clamp-2">
+                {it.productName}
+              </div>
+              <div className="text-xs text-gray-500 mt-0.5">Qty: {it.quantity}</div>
             </div>
-            <div className="text-sm font-medium">
-              ${((it.price * it.quantity) / 100).toFixed(2)}
+            <div className="text-sm font-medium text-gray-900 whitespace-nowrap">
+              {formatCurrency((it.price ?? 0) * (it.quantity ?? 0))}
             </div>
           </div>
         ))}
+        {items.length === 0 && (
+          <p className="text-sm text-gray-500 italic">No items found.</p>
+        )}
       </div>
 
-      <div className="mt-4 border-t pt-4 text-sm space-y-2">
-        <div className="flex justify-between text-gray-600">
-          {" "}
-          <span>Subtotal</span> <span>${(subtotal / 100).toFixed(2)}</span>
-        </div>
-        <div className="flex justify-between text-gray-600">
-          {" "}
-          <span>Shipping</span> <span>${(shipping / 100).toFixed(2)}</span>
-        </div>
-        <div className="flex justify-between text-gray-600">
-          {" "}
-          <span>Tax</span> <span>${(tax / 100).toFixed(2)}</span>
-        </div>
-        <div className="flex justify-between font-semibold text-gray-900 text-lg">
-          {" "}
-          <span>Total</span> <span>${(total / 100).toFixed(2)}</span>
+      <div className="mt-6 border-t border-gray-100 pt-4 text-sm space-y-3">
+        <div className="flex justify-between items-center font-bold text-gray-900 text-lg">
+          <span>Total</span>
+          <span>{formatCurrency(total)}</span>
         </div>
       </div>
     </aside>
