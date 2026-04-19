@@ -13,6 +13,7 @@ const sendPaymentNotification = async ({
   orderId,
   amount,
   reason,
+  userName,
 }) => {
   if (!userId || !email || !type) {
     console.warn('Skipping notification due to missing required fields');
@@ -34,9 +35,9 @@ const sendPaymentNotification = async ({
         type,
         metadata: {
           orderId,
-          amount,
+          amount: amount ? amount / 100 : 0, // Convert from cents to main unit for display
           reason,
-          userName: userId,
+          userName: userName || email.split('@')[0] || userId,
         },
       }),
       signal: controller.signal,

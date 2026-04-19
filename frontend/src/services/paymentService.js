@@ -1,9 +1,10 @@
 import { paymentClient } from "../api/axiosConfig";
 
-const createPayment = async ({ orderId, userId, amount, currency = "lkr" }) => {
+const createPayment = async ({ orderId, userId, email, amount, currency = "lkr" }) => {
   const resp = await paymentClient.post("/api/payments/create", {
     orderId,
     userId,
+    email,
     amount,
     currency,
   });
