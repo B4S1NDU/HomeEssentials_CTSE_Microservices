@@ -148,7 +148,7 @@ const PaymentFormInner = ({
   );
 };
 
-const PaymentForm = ({ orderId, userId, amount, currency = "lkr" }) => {
+const PaymentForm = ({ orderId, userId, email, amount, currency = "lkr" }) => {
   const [clientSecret, setClientSecret] = React.useState(null);
 
   React.useEffect(() => {
@@ -158,6 +158,7 @@ const PaymentForm = ({ orderId, userId, amount, currency = "lkr" }) => {
         const resp = await paymentService.createPayment({
           orderId,
           userId,
+          email,
           amount,
           currency,
         });
@@ -168,7 +169,7 @@ const PaymentForm = ({ orderId, userId, amount, currency = "lkr" }) => {
     };
     create();
     return () => (mounted = false);
-  }, [orderId, userId, amount, currency]);
+  }, [orderId, userId, email, amount, currency]);
 
   if (!clientSecret) {
     return (

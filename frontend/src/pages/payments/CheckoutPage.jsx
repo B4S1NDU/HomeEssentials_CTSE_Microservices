@@ -25,6 +25,7 @@ export default function CheckoutPage() {
             <PaymentForm
               orderId={orderId}
               userId={userId}
+              email={user?.email}
               amount={amount * 100}
               currency="lkr"
             />
