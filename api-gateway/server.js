@@ -15,12 +15,12 @@ app.use(morgan('dev'));
 
 // Service URLs (from .env or Azure Container Apps Internal DNS)
 const services = {
-    users: process.env.USER_SERVICE_URL || 'http://user-service:3001',
-    products: process.env.PRODUCT_SERVICE_URL || 'http://product-service:3002',
-    inventory: process.env.INVENTORY_SERVICE_URL || 'http://inventory-service:3003',
-    orders: process.env.ORDER_SERVICE_URL || 'http://order-service:3004',
-    payments: process.env.PAYMENT_SERVICE_URL || 'http://payment-service:3005',
-    notifications: process.env.NOTIFICATION_SERVICE_URL || 'http://notification-service:3006',
+    users: process.env.USER_SERVICE_URL || 'https://user-service.politepond-d071e43b.southeastasia.azurecontainerapps.io',
+    products: process.env.PRODUCT_SERVICE_URL || 'https://product-service.politepond-d071e43b.southeastasia.azurecontainerapps.io',
+    inventory: process.env.INVENTORY_SERVICE_URL || 'https://inventory-service.politepond-d071e43b.southeastasia.azurecontainerapps.io',
+    orders: process.env.ORDER_SERVICE_URL || 'https://order-service.politepond-d071e43b.southeastasia.azurecontainerapps.io',
+    payments: process.env.PAYMENT_SERVICE_URL || 'https://payment-service.politepond-d071e43b.southeastasia.azurecontainerapps.io',
+    notifications: process.env.NOTIFICATION_SERVICE_URL || 'https://notification-service.politepond-d071e43b.southeastasia.azurecontainerapps.io',
 };
 
 // Route Setup
