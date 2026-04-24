@@ -29,37 +29,37 @@ const services = {
 app.use(createProxyMiddleware({ 
     target: services.users, 
     changeOrigin: true,
-    pathFilter: ['/api/users', '/api/auth']
+    pathFilter: (path) => path.startsWith('/api/users') || path.startsWith('/api/auth')
 }));
 
 app.use(createProxyMiddleware({ 
     target: services.products, 
     changeOrigin: true,
-    pathFilter: '/api/products'
+    pathFilter: (path) => path.startsWith('/api/products')
 }));
 
 app.use(createProxyMiddleware({ 
     target: services.inventory, 
     changeOrigin: true,
-    pathFilter: ['/api/inventory, /api/warehouse']
+    pathFilter: (path) => path.startsWith('/api/inventory') || path.startsWith('/api/warehouse')
 }));
 
 app.use(createProxyMiddleware({ 
     target: services.orders, 
     changeOrigin: true,
-    pathFilter: '/api/orders'
+    pathFilter: (path) => path.startsWith('/api/orders')
 }));
 
 app.use(createProxyMiddleware({ 
     target: services.payments, 
     changeOrigin: true,
-    pathFilter: '/api/payments'
+    pathFilter: (path) => path.startsWith('/api/payments')
 }));
 
 app.use(createProxyMiddleware({ 
     target: services.notifications, 
     changeOrigin: true,
-    pathFilter: '/api/notifications'
+    pathFilter: (path) => path.startsWith('/api/notifications')
 }));
 
 // Health Checking
