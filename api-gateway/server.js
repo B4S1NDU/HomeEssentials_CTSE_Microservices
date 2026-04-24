@@ -13,7 +13,7 @@ const PORT = process.env.PORT || 8080;
 app.use(cors());
 app.use(morgan('dev'));
 
-// Service URLs (from .env or Azure Container Apps internal DNS)
+// Service URLs (from .env or Azure Container Apps Internal DNS)
 const services = {
     users: process.env.USER_SERVICE_URL || 'http://user-service:3001',
     products: process.env.PRODUCT_SERVICE_URL || 'http://product-service:3002',
