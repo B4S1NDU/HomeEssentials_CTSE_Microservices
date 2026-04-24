@@ -24,16 +24,43 @@ const services = {
 };
 
 // Route Setup
-// Forwards the requests exactly as they are without stripping the path
-// (e.g., /api/products -> product-service:3002/api/products)
-app.use('/api/users', createProxyMiddleware({ target: services.users, changeOrigin: true }));
-app.use('/api/auth', createProxyMiddleware({ target: services.users, changeOrigin: true }));
+// We use pathFilter to avoid Express stripping the prefix
+// (e.g., /api/users/login stays /api/users/login when sent to user-service)
+app.use(createProxyMiddleware({ 
+    target: services.users, 
+    changeOrigin: true,
+    pathFilter: ['/api/users', '/api/auth']
+}));
 
-app.use('/api/products', createProxyMiddleware({ target: services.products, changeOrigin: true }));
-app.use('/api/inventory', createProxyMiddleware({ target: services.inventory, changeOrigin: true }));
-app.use('/api/orders', createProxyMiddleware({ target: services.orders, changeOrigin: true }));
-app.use('/api/payments', createProxyMiddleware({ target: services.payments, changeOrigin: true }));
-app.use('/api/notifications', createProxyMiddleware({ target: services.notifications, changeOrigin: true }));
+app.use(createProxyMiddleware({ 
+    target: services.products, 
+    changeOrigin: true,
+    pathFilter: '/api/products'
+}));
+
+app.use(createProxyMiddleware({ 
+    target: services.inventory, 
+    changeOrigin: true,
+    pathFilter: '/api/inventory'
+}));
+
+app.use(createProxyMiddleware({ 
+    target: services.orders, 
+    changeOrigin: true,
+    pathFilter: '/api/orders'
+}));
+
+app.use(createProxyMiddleware({ 
+    target: services.payments, 
+    changeOrigin: true,
+    pathFilter: '/api/payments'
+}));
+
+app.use(createProxyMiddleware({ 
+    target: services.notifications, 
+    changeOrigin: true,
+    pathFilter: '/api/notifications'
+}));
 
 // Health Checking
 app.get('/health', (req, res) => {
