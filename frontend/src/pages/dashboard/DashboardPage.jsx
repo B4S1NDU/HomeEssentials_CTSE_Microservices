@@ -26,7 +26,6 @@ import { useAuth } from "../../context/AuthContext";
 import StatCard from "../../components/common/StatCard";
 import Spinner from "../../components/common/Spinner";
 import Badge from "../../components/common/Badge";
-import { API_URLS } from "../../utils/constants";
 import { formatDateTime, getStockStatusColor } from "../../utils/helpers";
 
 const SERVICE_DEFS = [

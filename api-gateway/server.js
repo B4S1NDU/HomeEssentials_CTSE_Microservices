@@ -24,41 +24,16 @@ const services = {
 };
 
 // Route Setup
-app.use('/api/users', createProxyMiddleware({ 
-    target: services.users, 
-    changeOrigin: true,
-    pathRewrite: { '^/api/users': '' } // Strips /api/users to send clean path to microservice
-}));
+// Forwards the requests exactly as they are without stripping the path
+// (e.g., /api/products -> product-service:3002/api/products)
+app.use('/api/users', createProxyMiddleware({ target: services.users, changeOrigin: true }));
+app.use('/api/auth', createProxyMiddleware({ target: services.users, changeOrigin: true }));
 
-app.use('/api/products', createProxyMiddleware({ 
-    target: services.products, 
-    changeOrigin: true,
-    pathRewrite: { '^/api/products': '' }
-}));
-
-app.use('/api/inventory', createProxyMiddleware({ 
-    target: services.inventory, 
-    changeOrigin: true,
-    pathRewrite: { '^/api/inventory': '' }
-}));
-
-app.use('/api/orders', createProxyMiddleware({ 
-    target: services.orders, 
-    changeOrigin: true,
-    pathRewrite: { '^/api/orders': '' }
-}));
-
-app.use('/api/payments', createProxyMiddleware({ 
-    target: services.payments, 
-    changeOrigin: true,
-    pathRewrite: { '^/api/payments': '' }
-}));
-
-app.use('/api/notifications', createProxyMiddleware({ 
-    target: services.notifications, 
-    changeOrigin: true,
-    pathRewrite: { '^/api/notifications': '' }
-}));
+app.use('/api/products', createProxyMiddleware({ target: services.products, changeOrigin: true }));
+app.use('/api/inventory', createProxyMiddleware({ target: services.inventory, changeOrigin: true }));
+app.use('/api/orders', createProxyMiddleware({ target: services.orders, changeOrigin: true }));
+app.use('/api/payments', createProxyMiddleware({ target: services.payments, changeOrigin: true }));
+app.use('/api/notifications', createProxyMiddleware({ target: services.notifications, changeOrigin: true }));
 
 // Health Check
 app.get('/health', (req, res) => {

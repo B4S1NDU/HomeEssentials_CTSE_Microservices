@@ -1,5 +1,4 @@
 import axios from "axios";
-import { API_URLS } from "../utils/constants";
 
 const createInstance = (baseURL) => {
   const instance = axios.create({ baseURL, timeout: 10000 });
@@ -20,9 +19,12 @@ const createInstance = (baseURL) => {
   return instance;
 };
 
-export const userClient = createInstance(API_URLS.USER_SERVICE);
-export const productClient = createInstance(API_URLS.PRODUCT_SERVICE);
-export const inventoryClient = createInstance(API_URLS.INVENTORY_SERVICE);
-export const paymentClient = createInstance(API_URLS.PAYMENT_SERVICE);
-export const orderClient = createInstance(API_URLS.ORDER_SERVICE);
-export const notificationClient = createInstance(API_URLS.NOTIFICATION_SERVICE);
+// Since we have an API Gateway now, all clients point to the same single URL!
+const API_GATEWAY_APP = import.meta.env.VITE_API_GATEWAY_URL || 'http://localhost:8080';
+
+export const userClient = createInstance(API_GATEWAY_APP);
+export const productClient = createInstance(API_GATEWAY_APP);
+export const inventoryClient = createInstance(API_GATEWAY_APP);
+export const paymentClient = createInstance(API_GATEWAY_APP);
+export const orderClient = createInstance(API_GATEWAY_APP);
+export const notificationClient = createInstance(API_GATEWAY_APP);

@@ -1,10 +1,13 @@
+// Since we set up an API Gateway, all service calls go to ONE URL!
+const GATEWAY_URL = import.meta.env.VITE_API_GATEWAY_URL || 'http://localhost:8080';
+
 export const API_URLS = {
-  USER_SERVICE: import.meta.env.VITE_USER_SERVICE_URL || 'http://localhost:3001',
-  PRODUCT_SERVICE: import.meta.env.VITE_PRODUCT_SERVICE_URL || 'http://localhost:3002',
-  INVENTORY_SERVICE: import.meta.env.VITE_INVENTORY_SERVICE_URL || 'http://localhost:3003',
-  ORDER_SERVICE: import.meta.env.VITE_ORDER_SERVICE_URL || 'http://localhost:3004',
-  PAYMENT_SERVICE: import.meta.env.VITE_PAYMENT_SERVICE_URL || 'http://localhost:3005',
-  NOTIFICATION_SERVICE: import.meta.env.VITE_NOTIFICATION_SERVICE_URL || 'http://localhost:3006',
+  USER_SERVICE: GATEWAY_URL,
+  PRODUCT_SERVICE: GATEWAY_URL,
+  INVENTORY_SERVICE: GATEWAY_URL,
+  ORDER_SERVICE: GATEWAY_URL,
+  PAYMENT_SERVICE: GATEWAY_URL,
+  NOTIFICATION_SERVICE: GATEWAY_URL,
 };
 
 export const ROLES = {
