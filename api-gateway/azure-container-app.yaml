@@ -1,0 +1,43 @@
+location: eastus
+properties:
+  managedEnvironmentId: /subscriptions/${SUBSCRIPTION_ID}/resourceGroups/homeessentials-rg/providers/Microsoft.App/managedEnvironments/homeessentials
+  configuration:
+    ingress:
+      external: true # The Gateway MUST be external so the frontend can reach it
+      targetPort: 8080
+      allowInsecure: false
+      traffic:
+        - latestRevision: true
+          weight: 100
+  template:
+    containers:
+      - name: api-gateway
+        image: ${ACR_SERVER}/homeessentials-api-gateway:latest
+        env:
+          - name: NODE_ENV
+            value: production
+          - name: PORT
+            value: "8080"
+          - name: USER_SERVICE_URL
+            value: https://user-service.politepond-d071e43b.southeastasia.azurecontainerapps.io
+          - name: PRODUCT_SERVICE_URL
+            value: https://product-service.politepond-d071e43b.southeastasia.azurecontainerapps.io
+          - name: INVENTORY_SERVICE_URL
+            value: https://inventory-service.politepond-d071e43b.southeastasia.azurecontainerapps.io
+          - name: ORDER_SERVICE_URL
+            value: https://order-service.politepond-d071e43b.southeastasia.azurecontainerapps.io
+          - name: PAYMENT_SERVICE_URL
+            value: https://payment-service.politepond-d071e43b.southeastasia.azurecontainerapps.io
+          - name: NOTIFICATION_SERVICE_URL
+            value: https://notification-service.politepond-d071e43b.southeastasia.azurecontainerapps.io
+        resources:
+          cpu: 0.5
+          memory: 1.0Gi
+    scale:
+      minReplicas: 1
+      maxReplicas: 5
+      rules:
+        - name: http-scaling-rule
+          http:
+            metadata:
+              concurrentRequests: "50"

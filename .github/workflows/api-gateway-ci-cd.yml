@@ -1,0 +1,130 @@
+name: API Gateway CI/CD
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'api-gateway/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'api-gateway/**'
+
+permissions:
+  id-token: write
+  contents: read
+
+env:
+  SERVICE_NAME: api-gateway
+  AZURE_REGION: eastus
+  ACR_REPOSITORY: homeessentials-api-gateway
+  CONTAINER_APP_NAME: api-gateway
+  CONTAINER_APP_ENVIRONMENT: homeessentials
+  RESOURCE_GROUP: homeessentials-rg
+  CONTAINER_NAME: api-gateway
+
+jobs:
+  # Code Quality & Security Scan
+  code-quality:
+    name: Code Quality & Security
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./api-gateway
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0  # Full history for SonarCloud
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: api-gateway/package.json
+
+      - name: Install dependencies
+        run: npm install
+
+      # Security Scanning with Snyk
+      - name: Run Snyk Security Scan
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+
+  # Build and Push Docker Image
+  build:
+    name: Build & Push to ACR
+    runs-on: ubuntu-latest
+    needs: code-quality
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Log in to Azure Container Registry
+        uses: azure/docker-login@v1
+        with:
+          login-server: ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}
+          username: ${{ secrets.AZURE_REGISTRY_USERNAME }}
+          password: ${{ secrets.AZURE_REGISTRY_PASSWORD }}
+
+      - name: Build and push Docker image to ACR
+        id: build-image
+        env:
+          ACR_LOGIN_SERVER: ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}
+          IMAGE_TAG: ${{ github.sha }}
+        run: |
+          cd api-gateway
+          docker build -t $ACR_LOGIN_SERVER/$ACR_REPOSITORY:$IMAGE_TAG .
+          docker tag $ACR_LOGIN_SERVER/$ACR_REPOSITORY:$IMAGE_TAG $ACR_LOGIN_SERVER/$ACR_REPOSITORY:latest
+          docker push $ACR_LOGIN_SERVER/$ACR_REPOSITORY:$IMAGE_TAG
+          docker push $ACR_LOGIN_SERVER/$ACR_REPOSITORY:latest
+          echo "image=$ACR_LOGIN_SERVER/$ACR_REPOSITORY:$IMAGE_TAG" >> $GITHUB_OUTPUT
+
+      - name: Scan image with Trivy
+        uses: aquasecurity/trivy-action@master
+        continue-on-error: true
+        with:
+          image-ref: ${{ steps.build-image.outputs.image }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+  # -- TEMPORARILY COMMENTED OUT FOR FIRST BUILD --
+  # # Deploy to Azure Container Apps
+  # deploy:
+  #   name: Deploy to Azure Container Apps
+  #   runs-on: ubuntu-latest
+  #   needs: build
+  #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  #
+  #   steps:
+  #     - name: Checkout code
+  #       uses: actions/checkout@v3
+  #
+  #     - name: Log in to Azure Container Registry
+  #       uses: azure/docker-login@v1
+  #       with:
+  #         login-server: ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}
+  #         username: ${{ secrets.AZURE_REGISTRY_USERNAME }}
+  #         password: ${{ secrets.AZURE_REGISTRY_PASSWORD }}
+  #
+  #     - name: Azure Login
+  #       uses: azure/login@v1
+  #       with:
+  #         creds: ${{ secrets.AZURE_CREDENTIALS }}
+  #
+  #     - name: Deploy to Container Apps
+  #       uses: azure/container-apps-deploy-action@v1
+  #       with:
+  #         appSourcePath: ${{ github.workspace }}/api-gateway
+  #         acrName: ${{ env.IMAGE_REGISTRY }}
+  #         containerAppName: ${{ env.CONTAINER_APP_NAME }}
+  #         resourceGroup: ${{ env.RESOURCE_GROUP }}
+  #         imageToDeploy: ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/${{ env.ACR_REPOSITORY }}:${{ github.sha }}
+
