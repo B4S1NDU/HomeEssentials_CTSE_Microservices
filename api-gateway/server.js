@@ -35,7 +35,7 @@ app.use('/api/orders', createProxyMiddleware({ target: services.orders, changeOr
 app.use('/api/payments', createProxyMiddleware({ target: services.payments, changeOrigin: true }));
 app.use('/api/notifications', createProxyMiddleware({ target: services.notifications, changeOrigin: true }));
 
-// Health Check
+// Health Checking
 app.get('/health', (req, res) => {
     res.status(200).json({ status: 'API Gateway is running properly!' });
 });
