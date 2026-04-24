@@ -1,6 +1,27 @@
 version: '3.8'
 
 services:
+  # API Gateway Service
+  api-gateway:
+    build:
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    env_file:
+      - ./api-gateway/.env
+    networks:
+      - homeessentials-network
+    depends_on:
+      - user-service
+      - product-service
+      - inventory-service
+      - order-service
+      - payment-service
+      - notification-service
+    restart: unless-stopped
+
   # Product Service
   product-service:
     build:
