@@ -123,10 +123,11 @@ jobs:
       - name: Deploy to Container Apps
         uses: azure/container-apps-deploy-action@v1
         with:
-          appSourcePath: ${{ github.workspace }}/api-gateway
-          acrName: ${{ env.ACR_REPOSITORY }}
-          containerAppName: ${{ env.CONTAINER_APP_NAME }}
-          resourceGroup: ${{ env.RESOURCE_GROUP }}
+          acrName: ${{ secrets.AZURE_REGISTRY_NAME }}
+          acrUsername: ${{ secrets.AZURE_REGISTRY_USERNAME }}
+          acrPassword: ${{ secrets.AZURE_REGISTRY_PASSWORD }}
           imageToDeploy: ${{ secrets.AZURE_REGISTRY_LOGIN_SERVER }}/${{ env.ACR_REPOSITORY }}:${{ github.sha }}
+          resourceGroup: ${{ env.RESOURCE_GROUP }}
+          containerAppName: ${{ env.CONTAINER_APP_NAME }}
 
 
