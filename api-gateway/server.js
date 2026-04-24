@@ -41,7 +41,7 @@ app.use(createProxyMiddleware({
 app.use(createProxyMiddleware({ 
     target: services.inventory, 
     changeOrigin: true,
-    pathFilter: '/api/inventory'
+    pathFilter: ['/api/inventory, /api/warehouse']
 }));
 
 app.use(createProxyMiddleware({ 
