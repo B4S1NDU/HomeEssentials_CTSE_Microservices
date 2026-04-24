@@ -322,7 +322,7 @@ exports.deductStock = async (req, res, next) => {
   try {
     const { orderId } = req.body;
 
-    // Find reservations with PENDING or CONFIRMED status (idempotent - handle if already deducted)
+    // Find Reservations with PENDING or CONFIRMED status (idempotent - handle if already deducted)
     const reservations = await Reservation.find({ 
       orderId, 
       status: { $in: ['PENDING', 'CONFIRMED'] }

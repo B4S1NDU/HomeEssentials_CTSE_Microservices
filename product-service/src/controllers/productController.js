@@ -19,7 +19,7 @@ exports.getAllProducts = async (req, res, next) => {
     // Pagination
     const skip = (parseInt(page) - 1) * parseInt(limit);
 
-    // Execute query
+    // Execute Query
     const products = await Product.find(filter)
       .skip(skip)
       .limit(parseInt(limit))

@@ -38,7 +38,7 @@ function buildCustomerSnapshot(user) {
   return { customerName, deliveryAddress };
 }
 
-/** Normalize address from order request; returns undefined if nothing provided */
+/** Normalize Address from order request; returns undefined if nothing provided */
 function normalizeRequestAddress(body) {
   if (!body || typeof body !== 'object') return undefined;
   const keys = ['line1', 'line2', 'city', 'district', 'postalCode', 'country'];

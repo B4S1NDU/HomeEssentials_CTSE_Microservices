@@ -4,7 +4,7 @@ const { sendPaymentNotification } = require("../services/notificationService");
 
 const STRIPE_MIN_AMOUNT = Number.parseInt(process.env.STRIPE_MIN_AMOUNT || "50", 10);
 
-// Create a Payment Intent and return client secret
+// Create a Payment Intent and return Client secret
 const createPayment = async (req, res, next) => {
   try {
     const { orderId, userId, amount, currency, email } = req.body;

@@ -5,7 +5,7 @@ const { validateSendNotification } = require('../utils/validators');
 
 /**
  * Send notification
- * Receives notification request from other services and sends it
+ * Receives Notification request from other services and sends it
  */
 const sendNotification = async (req, res, next) => {
   try {
