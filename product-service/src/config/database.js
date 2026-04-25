@@ -29,4 +29,4 @@ const connectDB = async () => {
 
 module.exports = connectDB;
 
-// Triggering OIDC deployment pipeline to Azure Container Apps
+// Triggering OIDC Deployment pipeline to Azure Container Apps
