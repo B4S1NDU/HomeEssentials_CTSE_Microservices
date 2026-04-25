@@ -5,7 +5,7 @@ const connectDB = async () => {
     const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/homeessentials_orders';
 
     await mongoose.connect(mongoUri, {
-      // Modern mongoose uses URI only; options kept minimal
+      // Modern Mongoose uses URI only; options kept minimal
     });
    //  Check connection state
     console.log('✅ Order Service: MongoDB connected');
